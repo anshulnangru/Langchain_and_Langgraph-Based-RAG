@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback, Component } from 'react'
 import ReactMarkdown from 'react-markdown'
 
-const API_BASE = ''
+const API_BASE = 'http://localhost:8000'
 
 const SUGGESTIONS = [
   '🧠 What topics are in my knowledge base?',

@@ -69,3 +69,10 @@ langfuse                    # Live production monitoring, tracing & user feedbac
 # --- EMBEDDINGS (SENTENCE TRANSFORMERS) ---
 sentence-transformers       # Local fallback embeddings (mxbai-embed-large-v1)
 flashrank
+
+# --- GUARDRAILS ---
+nemoguardrails              # NVIDIA NeMo Guardrails for input/output safety rails
+langchain-nvidia-ai-endpoints # LangChain integration with NVIDIA AI Endpoints
+
+#--- LLM GATEWAY ----
+portkey-ai
