@@ -1,8 +1,0 @@
-{
-  "filename": "sales.html",
-  "source_type": "odoo documentation",
-  "chunks": [
-    "Sales\nThe\nSales\napplication is used to run the sales process (from quotation to sales order) and\ndeliver and invoice what has been sold. Any product with the\nSales\ncheckbox ticked on its product\nform can be sold with the\nSales\napp.\nSee also\nOdoo Tutorials: Sales\nSales quotations\nCreate quotations\nQuotation templates\nMargins\nOptional products\nOnline signatures for order confirmations\nOnline payment order confirmation\nQuotation deadlines\nDeliveries and invoices to different addresses\nProduct variants on quotations and sales orders\nPDF quote builder\nConfigure dynamic form fields in PDFs\nAdd PDFs to a quote\nAdd a PDF or a URL to a product\nCustom email signatures\nInvoicing Method\nInvoicing policies\nDown payments\nPro-forma invoices\nInvoicing based on time and materials\nInvoice project milestones\nProducts & Prices\nManage your products\nImport products\nProduct variants\nManage your pricing\nPricelists\nForeign currencies\nDiscounts\nReturns and refunds\nUse eWallets and gift cards\nDiscount and loyalty programs\nCommissions\nAmazon Connector\nAmazon Connector features\nAmazon Connector configuration\nAmazon order management\nTracking lot or serial number products with FBA orders\nShopee Connector\nShopee Connector features\nShopee Connector configuration\nShopee order management\nLazada Connector\nLazada Connector features\nLazada Connector configuration\nLazada order management\nTikTok Connector\nTikTok Shop connector features\nTikTok Shop connector configuration\nTikTok Shop order management\nGelato\nEdit on",
-    "GitHub"
-  ]
-}

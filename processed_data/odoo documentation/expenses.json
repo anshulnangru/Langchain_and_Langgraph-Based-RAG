@@ -1,7 +1,0 @@
-{
-  "filename": "expenses.html",
-  "source_type": "odoo documentation",
-  "chunks": [
-    "Expenses\nExpense categories\nView expense categories\nCreate new expense categories\nInvoicing section\nExpense cards\nAvailability\nFees\nConfiguration\nCreate Stripe connected account\nAdd funds to Stripe account\nConfigure expense cards\nActivate expense cards\nDemo expense card\nUsing expense cards\nPhysical card\nCard PIN\nVirtual card\nLost cards\nTemporary card pauses\nLog expenses\nManually enter expenses\nAttach receipts\nUpload expenses\nDigitalization settings\nUpload receipts\nDrag and drop an expense\nEmail expenses\nSubmit expenses\nMy expenses dashboard\nSubmit expense records\nProcess expenses\nView expenses\nApprove expenses\nApprove individual expenses\nApprove multiple expenses\nRefuse expenses\nPost expenses\nPost individual expenses\nPost multiple expenses\nReimburse employees\nReimbursement settings\nReimburse in payslips\nReimburse individually\nReimburse in bulk\nReimburse expenses via cash, check, or direct deposit\nReinvoice expenses\nSetup\nLog an expense\nCreate an expense report\nApprove and post expenses\nInvoice expenses\nExpenses analysis\nView expense analysis report\nView expenses by employee\nView expenses by category\nEdit on GitHub"
-  ]
-}

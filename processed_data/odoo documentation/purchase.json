@@ -1,7 +1,0 @@
-{
-  "filename": "purchase.html",
-  "source_type": "odoo documentation",
-  "chunks": [
-    "Purchase\nOdoo Purchase\nhelps keep track of purchase agreements, quotations, and purchase orders. Learn\nhow to monitor purchase tender, automate replenishment, and follow up on your orders.\nSee also\nOdoo Tutorials: Purchase\nProducts\nImport vendor pricelist\nConfigure reordering rules\nTemporary reordering rules\nManage deals\nRequests for quotation\nBlanket orders\nCall for tenders\nPurchase templates\nControl policies\nManage vendor bills\nAdvanced\nSuggest quantities based on historical demand\nPurchase Analysis report\nVendor costs report\nProcurement expenses report\nEDI purchase-to-sales order import\nPurchase & Vendor analysis dashboard\nEdit on GitHub"
-  ]
-}

@@ -2,7 +2,10 @@ import logfire
 import os
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
-
+from fastapi.responses import StreamingResponse
+import json
+from fastapi import BackgroundTasks
+import asyncio
 load_dotenv()
 logfire.configure(token=os.getenv("LOGFIRE_TOKEN"))
 
@@ -47,6 +50,54 @@ class QueryRequest(BaseModel):
 def home():
     return {"message": "Enterprise LangGraph RAG API is live."}
 
+@app.post("/stream")
+async def stream_query(request: QueryRequest):
+    q = request.q
+    thread_id = request.thread_id
+
+    async def event_generator():
+        try:
+            loop = asyncio.get_event_loop()
+
+            # Run guard() in a thread pool — it's sync/blocking
+            rail_fired, rail_response = await loop.run_in_executor(
+                None, guard, q
+            )
+
+            if rail_fired:
+                logfire.info(f"🛡️ Request blocked by guardrails | thread={thread_id}")
+                yield f"data: {json.dumps({'token': rail_response})}\n\n"
+                yield "data: [DONE]\n\n"
+                return
+
+            initial_state = {
+                "messages": [{"role": "user", "content": q}],
+                "current_query": q,
+                "documents": [],
+                "plan": ["Start"],
+                "status": "Initializing Graph..."
+            }
+            config = {"configurable": {"thread_id": thread_id}}
+
+            # Run rag_agent.invoke() in a thread pool — also sync/blocking
+            final_output = await loop.run_in_executor(
+                None,
+                lambda: rag_agent.invoke(initial_state, config=config)
+            )
+
+            answer = final_output.get("final_answer", "") or ""
+
+            for word in answer.split(" "):
+                yield f"data: {json.dumps({'token': word + ' '})}\n\n"
+                await asyncio.sleep(0.02)  # small delay makes the typing effect visible
+
+            yield "data: [DONE]\n\n"
+
+        except Exception as e:
+            logfire.error(f"❌ Stream Execution Failed: {e}")
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 @app.get("/graph")
 def get_graph_image():

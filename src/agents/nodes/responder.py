@@ -1,13 +1,12 @@
 import logfire
 from src.agents.state import AgentState
-from src.gateways import portkey_client, extract_cache_status
+from src.gateways import get_langchain_llm, extract_cache_status
 
+llm = get_langchain_llm(feature="rag")
 
 def generate_node(state: AgentState):
     """
     Synthesizes a response using both Documentation Context AND Conversation History.
-    Uses the native Portkey client (not LangChain) so we can read the
-    x-portkey-cache-status response header and surface Cache: Hit in the UI.
     """
     query = state["current_query"]
 
@@ -58,11 +57,11 @@ def generate_node(state: AgentState):
 
     with logfire.span("✍️ LLM Synthesis"):
         try:
-            response = portkey_client.chat.completions.create(
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.1
-            )
-            content = response.choices[0].message.content
+            response = llm.invoke(prompt)
+            content = response.content
+
+            # extract_cache_status reads x-portkey-cache-status header
+            # from the raw response object — works the same way as before
             cache_status = extract_cache_status(response)
             is_cache_hit = cache_status == "HIT"
 

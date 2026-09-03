@@ -56,7 +56,7 @@ def process_file(file_path: str, filename: str, source_type: str):
                 full_text = parse_pdf(file_path)
             elif ext in ("html", "htm"):
                 full_text = parse_html(file_path)
-            elif ext == "txt":
+            elif ext in ("txt", "md"):
                 full_text = parse_text(file_path)
             elif ext in ("docx", "pptx"):
                 from src.ingestion.loaders.office import parse_office
@@ -96,6 +96,7 @@ def process_file(file_path: str, filename: str, source_type: str):
                             "text": chunk,
                             "source": filename,
                             "source_type": source_type,
+                            "label": "true" if source_type == "true" else "noise",
                         },
                     )
                     for chunk, vector in zip(chunks, embeddings)

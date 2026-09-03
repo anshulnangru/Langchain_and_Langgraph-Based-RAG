@@ -1,7 +1,0 @@
-{
-  "filename": "manufacturing.html",
-  "source_type": "odoo documentation",
-  "chunks": [
-    "Manufacturing\nOdoo Manufacturing\nhelps manufacturers schedule, plan, and process manufacturing orders. With\nthe work center control panel, put tablets on the shop floor to control work orders in real-time and\nallow workers to trigger maintenance operations, feedback loops, quality issues, etc.\nSee also\nOdoo Tutorials: MRP\nOdoo Tutorials: Barcode Scanner\nIoT Boxes (MES)\nBasic setup\nManufacturing product configuration\nBill of materials\nOne-step manufacturing\nTwo-step manufacturing\nThree-step manufacturing\nManufacturing order costs\nWork-in-progress costs\nAdvanced configuration\nManaging BoMs for product variants\nKits\nMultilevel BoMs\nWork centers\nWork order dependencies\nWorkflows\nMaster production schedule\nWork center time off\nScrap during manufacturing\nManufacturing backorders\nSplit and merge manufacturing orders\nUnbuild orders\nBy-Products\nDismantle products into components\nContinuous product improvement\nManufacture with lots and serial numbers\nShop Floor\nShop Floor overview\nShop Floor time tracking\nSubcontracting\nBasic subcontracting\nResupply subcontracting\nDropship to subcontractor\nReporting\nDelays\nAllocation reports\nOverall equipment effectiveness\nProduction analysis\nEdit on GitHub"
-  ]
-}
