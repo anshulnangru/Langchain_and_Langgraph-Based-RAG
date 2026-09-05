@@ -48,7 +48,10 @@ def planner_node(state: AgentState):
     """
 
     with logfire.span("🧠 Planner Decision"):
-        decision = _invoke_with_retry(prompt).content.strip()
+        raw = _invoke_with_retry(prompt).content.strip()
+        # Strip <think>...</think> block if present
+        import re
+        decision = re.sub(r'<think>.*?</think>', '', raw, flags=re.DOTALL).strip()
         logfire.info(f"Intent identified: {decision}")
 
     if decision == "CONVERSATIONAL":

@@ -288,7 +288,7 @@ export default function App() {
         <div className="header-brand">
           <div className="header-logo">🧠</div>
           <div>
-            <div className="header-title">Second Brain</div>
+            <div className="header-title">RAG Assistant</div>
             <div className="header-subtitle">Agentic RAG · LangGraph</div>
           </div>
         </div>

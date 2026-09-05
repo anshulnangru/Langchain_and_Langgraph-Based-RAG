@@ -2,30 +2,40 @@ import time
 import logfire
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from src.config.config import settings   
+import requests
 
 BATCH_SIZE = 50
-_GEMINI_DIM = 3072
+_JINA_DIM = 1024
 _FALLBACK_DIM = 768  # all-mpnet-base-v2
 
 _active_model = None
-_model_type: str | None = None  # "gemini" or "fallback"
+_model_type: str | None = None  # "jina" or "fallback"
 
+JINA_API_URL = "https://api.jina.ai/v1/embeddings"
+JINA_MODEL = "jina-embeddings-v3" 
 
 # ── Model initialisation ───────────────────────────────────────────────────────
 
-def _probe_gemini():
-    """Try one embed call to verify Gemini is reachable. Returns model or None."""
+def _probe_jina():
+    """Try one embed call to verify Jina is reachable."""
+    if not settings.JINA_API_KEY:
+        return False
     try:
-        model = GoogleGenerativeAIEmbeddings(
-            model="models/gemini-embedding-2-preview",
-            google_api_key=settings.GEMINI_API_KEY,
+        resp = requests.post(
+            JINA_API_URL,
+            headers={
+                "Authorization": f"Bearer {settings.JINA_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            json={"model": JINA_MODEL, "input": ["probe"]},
+            timeout=15,
         )
-        model.embed_query("probe")
-        logfire.info("Gemini embeddings ready (gemini-embedding-2-preview, 3072-dim).")
-        return model
+        resp.raise_for_status()
+        logfire.info(f"Jina embeddings ready ({JINA_MODEL}, {_JINA_DIM}-dim).")
+        return True
     except Exception as e:
-        logfire.warning(f"Gemini probe failed: {e}. Will use sentence-transformers fallback.")
-        return None
+        logfire.warning(f"Jina probe failed: {e}. Trying Sentence Transformer next.")
+        return False    
 
 
 def _load_fallback():
@@ -40,10 +50,11 @@ def _init():
     if _active_model is not None:
         return
 
-    gemini = _probe_gemini()
-    if gemini:
-        _active_model = gemini
-        _model_type = "gemini"
+    jina = _probe_jina()
+    if jina:
+        _active_model = jina
+        _model_type = "jina"
+        
     else:
         _active_model = _load_fallback()
         _model_type = "fallback"
@@ -54,31 +65,42 @@ def _init():
 def get_embedding_dim() -> int:
     """Return the vector dimension for the active model. Call after _init()."""
     _init()
-    return _GEMINI_DIM if _model_type == "gemini" else _FALLBACK_DIM
+    return _JINA_DIM if _model_type == "jina" else _FALLBACK_DIM
 
+# ── Jina batch call ─────────────────────────────────────────────────────
+
+def _embed_jina(batch: list[str]) -> list[list[float]]:
+    for attempt in range(4):
+        try:
+            resp = requests.post(
+                JINA_API_URL,
+                headers={
+                    "Authorization": f"Bearer {settings.JINA_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={"model": JINA_MODEL, "input": batch},
+                timeout=30,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            return [item["embedding"] for item in data["data"]]
+        except Exception as e:
+            err = str(e).lower()
+            is_rate_limit = any(x in err for x in ("429", "rate", "quota"))
+            if is_rate_limit and attempt < 3:
+                wait = 2 ** attempt
+                logfire.warning(f"Jina rate limit — retrying in {wait}s (attempt {attempt+1}/4).")
+                time.sleep(wait)
+            else:
+                logfire.error(f"Jina embedding failed: {e}")
+                raise
+    raise RuntimeError("Jina rate limit persisted after 4 attempts.")
 
 # ── Batch embedding with retry ─────────────────────────────────────────────────
 
 def _embed_batch(batch: list[str]) -> list[list[float]]:
-    if _model_type == "gemini":
-        # Exponential backoff: 1 s → 2 s → 4 s → 8 s (4 attempts total)
-        for attempt in range(4):
-            try:
-                return _active_model.embed_documents(batch)
-            except Exception as e:
-                err = str(e).lower()
-                is_rate_limit = any(x in err for x in ("429", "rate", "quota", "resource_exhausted"))
-                if is_rate_limit and attempt < 3:
-                    wait = 2 ** attempt
-                    logfire.warning(
-                        f"Gemini rate limit hit — retrying in {wait}s "
-                        f"(attempt {attempt + 1}/4)."
-                    )
-                    time.sleep(wait)
-                else:
-                    logfire.error(f"Gemini embedding failed: {e}")
-                    raise
-        raise RuntimeError("Gemini rate limit persisted after 4 attempts.")
+    if _model_type == "jina":
+        return _embed_jina(batch)
     else:
         return _active_model.encode(batch, show_progress_bar=False).tolist()
 
@@ -87,8 +109,8 @@ def _embed_batch(batch: list[str]) -> list[list[float]]:
 
 def embed_query(query: str) -> list[float]:
     _init()
-    if _model_type == "gemini":
-        return _active_model.embed_query(query)
+    if _model_type == "jina":
+        return _embed_jina([query])[0]
     return _active_model.encode([query])[0].tolist()
 
 
@@ -99,4 +121,4 @@ def embed_texts(texts: list[str]) -> list[list[float]]:
         batch = texts[i : i + BATCH_SIZE]
         with logfire.span("Embed batch", model=_model_type, start=i, size=len(batch)):
             all_embeddings.extend(_embed_batch(batch))
-    return all_embeddings 
+    return all_embeddings

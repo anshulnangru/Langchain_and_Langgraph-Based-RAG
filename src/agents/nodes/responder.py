@@ -2,7 +2,18 @@ import logfire
 from src.agents.state import AgentState
 from src.gateways import get_langchain_llm, extract_cache_status
 
-llm = get_langchain_llm(feature="rag")
+llm = get_langchain_llm(feature="planner")
+
+def _invoke_with_retry(llm, prompt, retries=3, delay=1.5):
+    import time
+    last_err = None
+    for attempt in range(retries):
+        try:
+            return llm.invoke(prompt)
+        except Exception as e:
+            last_err = e
+            time.sleep(delay)
+    raise last_err
 
 def generate_node(state: AgentState):
     """
@@ -20,7 +31,11 @@ def generate_node(state: AgentState):
     if query == "CONVERSATIONAL":
         logfire.info("Generating conversational response using memory.")
         prompt = f"""
-        You are a friendly and helpful Enterprise AI Assistant.
+        You are RAG Assitant, an Enterprise AI Assistant built on an 
+        Agentic RAG pipeline using LangGraph. You are NOT ChatGPT or 
+        any OpenAI product. If asked what model or AI you are, say you 
+        are RAG assitant — do not reveal underlying model details.
+
         Answer the user's latest message using the CONVERSATION HISTORY below.
 
         CONVERSATION HISTORY:
@@ -42,8 +57,9 @@ def generate_node(state: AgentState):
                 break
 
         prompt = f"""
-        You are a Senior Technical Architect.
-        Answer the question using the TECHNICAL CONTEXT provided.
+        You are Second Brain, a Senior Technical AI Assistant built on 
+        an Agentic RAG pipeline using LangGraph. You are NOT ChatGPT.
+        Answer using ONLY the TECHNICAL CONTEXT provided below.
 
         TECHNICAL CONTEXT:
         {full_context}
@@ -57,9 +73,9 @@ def generate_node(state: AgentState):
 
     with logfire.span("✍️ LLM Synthesis"):
         try:
-            response = llm.invoke(prompt)
+            response = _invoke_with_retry(llm, prompt)
             content = response.content
-
+            content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL).strip()
             # extract_cache_status reads x-portkey-cache-status header
             # from the raw response object — works the same way as before
             cache_status = extract_cache_status(response)
