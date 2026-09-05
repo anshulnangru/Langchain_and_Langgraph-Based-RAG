@@ -1,7 +1,7 @@
 import logfire
 from src.agents.state import AgentState
 from src.gateways import get_langchain_llm, extract_cache_status
-
+import re
 llm = get_langchain_llm(feature="planner")
 
 def _invoke_with_retry(llm, prompt, retries=3, delay=1.5):
@@ -57,7 +57,7 @@ def generate_node(state: AgentState):
                 break
 
         prompt = f"""
-        You are Second Brain, a Senior Technical AI Assistant built on 
+        You are RAG Assitant, a Senior Technical AI Assistant built on 
         an Agentic RAG pipeline using LangGraph. You are NOT ChatGPT.
         Answer using ONLY the TECHNICAL CONTEXT provided below.
 
