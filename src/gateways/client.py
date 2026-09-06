@@ -13,7 +13,14 @@ def get_langchain_llm(feature: str = "rag", model: str = None) -> ChatGroq:
         settings.GROQ_MODEL_PLANNER if feature == "planner"
         else settings.GROQ_MODEL
     )
-    return ChatGroq(api_key=settings.GROQ_API_KEY, model=m, temperature=0)
+    # Planner only outputs ~10 tokens, responder is limited by Groq free OTPM
+    max_tok = 4096 if feature == "planner" else 950
+    return ChatGroq(
+        api_key=settings.GROQ_API_KEY,
+        model=m,
+        temperature=0,
+        max_tokens=max_tok
+    )
 
 def extract_cache_status(response) -> str:
     return "MISS"  # no-op until Portkey is restored
