@@ -35,14 +35,6 @@ def initialize_rails() -> None:
 
 
 def guard(message: str) -> tuple[bool, str | None]:
-    """
-    Run a user message through the NeMo rails gate.
-
-    Returns:
-        (True,  rail_response) — a rail fired; return this response immediately,
-                                skip the RAG pipeline entirely.
-        (False, None)          — message is clean; proceed to LangGraph.
-    """
     if _rails is None:
         logfire.warning("⚠️ Guardrails not initialised — skipping gate.")
         return False, None
@@ -50,9 +42,14 @@ def guard(message: str) -> tuple[bool, str | None]:
     with logfire.span("🛡️ Guardrails Check"):
         result = _rails.generate(messages=[{"role": "user", "content": message}])
 
-        # NeMo returns {'role': 'assistant', 'content': '...'} — extract text
+        # Step 1 — extract raw content
         content = result.get("content", "") if isinstance(result, dict) else str(result)
 
+        # Step 2 — strip think tags
+        import re
+        content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL).strip()
+
+        # Step 3 — check if a rail fired
         fired = any(indicator in content for indicator in RAIL_INDICATORS)
 
         if fired:
