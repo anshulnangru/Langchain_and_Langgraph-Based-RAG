@@ -2,7 +2,6 @@
 
 > An enterprise-grade, stateful **Agentic RAG system** built with LangGraph, featuring intelligent query routing, semantic reranking, multi-layer security guardrails, and real-time token streaming.
 
-![RAG Assistant Demo](demo.png)
 
 ---
 
@@ -60,7 +59,7 @@ User Query
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 **AI/ML**
 - [LangGraph](https://github.com/langchain-ai/langgraph) — stateful agent orchestration
@@ -246,7 +245,7 @@ Returns a Mermaid PNG diagram of the LangGraph agent workflow.
 
 ---
 
-## 🗺️ Roadmap
+##  Roadmap
 
 - [ ] **Eval pipeline** — Ragas (faithfulness, answer relevancy, context recall) on a golden Q&A dataset
 - [ ] **Portkey gateway** — LLM fallback routing + semantic caching
