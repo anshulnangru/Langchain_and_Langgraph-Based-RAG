@@ -1,4 +1,4 @@
-# 🧠 RAG Assistant — Production Agentic RAG Pipeline
+#  RAG Assistant — Production Agentic RAG Pipeline
 
 > An enterprise-grade, stateful **Agentic RAG system** built with LangGraph, featuring intelligent query routing, semantic reranking, multi-layer security guardrails, and real-time token streaming.
 
@@ -6,7 +6,7 @@
 
 ---
 
-## 🏗️ Architecture Overview
+## Architecture Overview
 
 ```
 User Query
@@ -45,7 +45,7 @@ User Query
 
 ---
 
-## ✨ Key Features
+## Key Features
 
 | Feature | Implementation |
 |---|---|
@@ -80,7 +80,7 @@ User Query
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 RAG/
@@ -118,7 +118,7 @@ RAG/
 
 ---
 
-## 🚀 Setup & Running
+## Setup & Running
 
 ### Prerequisites
 - Python 3.12+
@@ -170,8 +170,8 @@ uvicorn main:app --reload --port 8000
 
 Confirm startup — you should see:
 ```
-🛡️ NeMo Guardrails initialised
-🚀 App startup complete — guardrails initialised.
+ NeMo Guardrails initialised
+ App startup complete — guardrails initialised.
 ```
 
 ### 5. Start the frontend
@@ -186,7 +186,7 @@ Open [http://localhost:5173](http://localhost:5173)
 
 ---
 
-## 🔍 How the Pipeline Works
+##  How the Pipeline Works
 
 ### Query Routing
 
@@ -211,7 +211,7 @@ The corpus deliberately includes 64% noise (semantically related but wrong-frame
 
 ---
 
-## 🛡️ Security
+##  Security
 
 The guardrail system handles four threat categories:
 
@@ -222,7 +222,7 @@ The guardrail system handles four threat categories:
 
 ---
 
-## 📡 API Reference
+##  API Reference
 
 ### `POST /stream`
 Streams the response token by token via Server-Sent Events.
@@ -256,7 +256,7 @@ Returns a Mermaid PNG diagram of the LangGraph agent workflow.
 
 ---
 
-## 👤 Author
+##  Author
 
 **Anshul Nangru** · [GitHub](https://github.com/anshulnangru) · [LinkedIn](https://linkedin.com/in/anshulnangru)
 
