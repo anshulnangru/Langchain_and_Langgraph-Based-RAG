@@ -9,7 +9,7 @@ client = QdrantClient(
     api_key=settings.QDRANT_API_KEY
 )
 
-def search_enterprise_knowledge(query: str, limit: int = 5, fetch_k: int = 15):
+def search_enterprise_knowledge(query: str, limit: int = 3, fetch_k: int = 15):
     """
     Retrieves fetch_k candidates via vector search, then reranks down to `limit`
     using FlashRank's cross-encoder for higher precision.
