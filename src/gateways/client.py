@@ -13,15 +13,9 @@ def get_langchain_llm(feature: str = "rag", model: str = None) -> ChatGroq:
         settings.GROQ_MODEL_PLANNER if feature == "planner"
         else settings.GROQ_MODEL
     )
-    # Split traffic across two API keys to double the effective rate limit
-    api_key = (
-        settings.GROQ_FALLBACK_API_KEY 
-        if feature == "planner" 
-        else settings.GROQ_API_KEY
-    )
-    max_tok = 4096 if feature == "planner" else 950
+    max_tok = 150 if feature == "planner" else 950
     return ChatGroq(
-        api_key=api_key,
+        api_key=settings.GROQ_API_KEY,
         model=m,
         temperature=0,
         max_tokens=max_tok

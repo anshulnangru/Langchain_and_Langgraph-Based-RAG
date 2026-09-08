@@ -59,17 +59,6 @@ async def stream_query(request: QueryRequest):
         try:
             loop = asyncio.get_event_loop()
 
-            # Run guard() in a thread pool — it's sync/blocking
-            rail_fired, rail_response = await loop.run_in_executor(
-                None, guard, q
-            )
-
-            if rail_fired:
-                logfire.info(f"🛡️ Request blocked by guardrails | thread={thread_id}")
-                yield f"data: {json.dumps({'token': rail_response})}\n\n"
-                yield "data: [DONE]\n\n"
-                return
-
             initial_state = {
                 "messages": [{"role": "user", "content": q}],
                 "current_query": q,
@@ -79,20 +68,38 @@ async def stream_query(request: QueryRequest):
             }
             config = {"configurable": {"thread_id": thread_id}}
 
-            # Run rag_agent.invoke() in a thread pool — also sync/blocking
-            final_output = await loop.run_in_executor(
+            # Run guardrails and LangGraph CONCURRENTLY
+            # Both start at the same time — whoever finishes first doesn't block the other
+            guard_task = loop.run_in_executor(None, guard, q)
+            graph_task = loop.run_in_executor(
                 None,
                 lambda: rag_agent.invoke(initial_state, config=config)
             )
 
-            answer = final_output.get("final_answer", "") or ""
+            # Wait for guardrails first — it's usually faster (no retrieval)
+            rail_fired, rail_response = await guard_task
 
+            if rail_fired:
+                # Cancel the graph task — we don't need the result
+                graph_task.cancel()
+                logfire.info(f"🛡️ Request blocked by guardrails | thread={thread_id}")
+                yield f"data: {json.dumps({'token': rail_response})}\n\n"
+                yield "data: [DONE]\n\n"
+                return
+
+            # Guardrails passed — now wait for the graph result
+            # (it's been running in parallel this whole time)
+            final_output = await graph_task
+
+            answer = final_output.get("final_answer", "") or ""
             for word in answer.split(" "):
                 yield f"data: {json.dumps({'token': word + ' '})}\n\n"
-                await asyncio.sleep(0.02)  # small delay makes the typing effect visible
+                await asyncio.sleep(0.02)
 
             yield "data: [DONE]\n\n"
 
+        except asyncio.CancelledError:
+            pass
         except Exception as e:
             logfire.error(f"❌ Stream Execution Failed: {e}")
             yield f"data: {json.dumps({'error': str(e)})}\n\n"

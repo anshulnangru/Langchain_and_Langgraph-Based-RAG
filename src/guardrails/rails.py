@@ -18,9 +18,10 @@ def initialize_rails() -> None:
     global _rails
 
     guard_llm = ChatGroq(
-        api_key=settings.GROQ_API_FALLBACK_KEY,
-        model="groq/compound-mini",
-        temperature=0
+        api_key=settings.GROQ_FALLBACK_API_KEY,
+        model="openai/gpt-oss-20b",
+        temperature=0,
+        max_tokens=150
     )
 
     config = RailsConfig.from_content(
@@ -40,20 +41,51 @@ def guard(message: str) -> tuple[bool, str | None]:
         return False, None
 
     with logfire.span("🛡️ Guardrails Check"):
-        result = _rails.generate(messages=[{"role": "user", "content": message}])
+        result = _rails.generate(
+            messages=[
+                {
+                    "role": "user",
+                    "content": message
+                }
+            ]
+        )
 
-        # Step 1 — extract raw content
-        content = result.get("content", "") if isinstance(result, dict) else str(result)
-
-        # Step 2 — strip think tags
         import re
-        content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL).strip()
 
-        # Step 3 — check if a rail fired
-        fired = any(indicator in content for indicator in RAIL_INDICATORS)
+        # Extract the model response exactly once
+        content = (
+            result.get("content", "")
+            if isinstance(result, dict)
+            else str(result)
+        )
+
+        # Remove complete <think>...</think> blocks
+        content = re.sub(
+            r"<think>.*?</think>",
+            "",
+            content,
+            flags=re.DOTALL | re.IGNORECASE,
+        )
+
+        # Handle a truncated/unclosed <think> block
+        content = re.sub(
+            r"<think>.*$",
+            "",
+            content,
+            flags=re.DOTALL | re.IGNORECASE,
+        )
+
+        content = content.strip()
+
+        fired = any(
+            indicator in content
+            for indicator in RAIL_INDICATORS
+        )
 
         if fired:
-            logfire.info(f"🛡️ Guardrails fired | query='{message[:80]}'")
+            logfire.info(
+                f"🛡️ Guardrails fired | query='{message[:80]}'"
+            )
             return True, content
 
         logfire.info("✅ Guardrails passed.")
