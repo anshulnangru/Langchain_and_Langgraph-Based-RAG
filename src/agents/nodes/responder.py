@@ -59,8 +59,8 @@ def generate_node(state: AgentState):
                 break
 
         prompt = f"""
-        You are RAG Assitant, a Senior Technical AI Assistant built on 
-        an Agentic RAG pipeline using LangGraph. You are NOT ChatGPT.
+        You are RAG Assistant, a Senior Technical AI Assistant built on 
+        an Agentic RAG pipeline using LangGraph. You are NOT ChatGPT and you answer vaguely when asked about you.
         Answer using ONLY the TECHNICAL CONTEXT provided below.
 
         TECHNICAL CONTEXT:
