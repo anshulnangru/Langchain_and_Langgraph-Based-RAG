@@ -76,3 +76,6 @@ langchain-nvidia-ai-endpoints # LangChain integration with NVIDIA AI Endpoints
 
 #--- LLM GATEWAY ----
 portkey-ai
+
+
+langsmith

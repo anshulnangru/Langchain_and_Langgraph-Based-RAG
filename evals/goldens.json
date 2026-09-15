@@ -1,0 +1,62 @@
+[
+  {
+    "question": "What is MemorySaver in LangGraph and how do you use it?",
+    "ground_truth": "MemorySaver is a built-in in-memory checkpointer in LangGraph that stores graph state between invocations. It is passed to the compile() method and enables multi-turn conversation memory using thread IDs. For production use it should be replaced with a persistent checkpointer like PostgresSaver or SqliteSaver."
+  },
+  {
+    "question": "How do you define conditional routing in LangGraph?",
+    "ground_truth": "Conditional routing in LangGraph is implemented using add_conditional_edges(). You provide a source node and a routing function that inspects the current state and returns the name of the next node to execute, allowing the graph to branch into different paths based on runtime decisions."
+  },
+  {
+    "question": "What is the difference between invoke and stream in LangGraph?",
+    "ground_truth": "invoke() runs the graph synchronously and returns the final state after all nodes complete. stream() runs the graph and yields intermediate state updates after each node executes, allowing real-time observation of progress. Both accept the same initial state and config arguments."
+  },
+  {
+    "question": "What is a StateGraph in LangGraph?",
+    "ground_truth": "StateGraph is the main class used to define a LangGraph graph. You instantiate it with a state schema TypedDict, add nodes with add_node(), connect them with add_edge() or add_conditional_edges(), set the entry point with an edge from START, and compile with compile() to get a runnable graph."
+  },
+  {
+    "question": "What is a checkpointer in LangGraph and why is it needed?",
+    "ground_truth": "A checkpointer in LangGraph is a persistence layer that saves graph state after each node execution. It enables multi-turn conversations by allowing the graph to resume from a previous state using a thread_id. Without a checkpointer each graph invocation starts fresh with no memory of previous interactions."
+  },
+  {
+    "question": "How does LangChain differ from LangGraph?",
+    "ground_truth": "LangChain is a library of composable primitives for building LLM applications including models, prompts, memory, tools, and agents. LangGraph is an orchestration layer built on LangChain that lets you wire those components into stateful graph-structured workflows with explicit state management, branching, and looping."
+  },
+  {
+    "question": "What are nodes and edges in LangGraph?",
+    "ground_truth": "A node in LangGraph is a Python function that takes the current state and returns an updated state. An edge defines the flow between nodes — a normal edge always routes to the next node, while a conditional edge uses a routing function to decide which node to route to based on the current state."
+  },
+  {
+    "question": "How do you add memory to a LangGraph agent?",
+    "ground_truth": "Memory is added to a LangGraph agent by passing a checkpointer such as MemorySaver to the compile() method. You then provide a thread_id in the config dictionary when invoking the graph. The checkpointer saves state between invocations so the agent remembers previous turns in the conversation."
+  },
+  {
+    "question": "What is the START node in LangGraph?",
+    "ground_truth": "START is a special sentinel node in LangGraph that marks the entry point of the graph. You add an edge from START to the first node you want to execute. It is imported from langgraph.graph and used with set_entry_point() or add_edge(START, first_node)."
+  },
+  {
+    "question": "How does streaming work in LangGraph?",
+    "ground_truth": "LangGraph supports streaming via the stream() method which yields state updates as each node completes. The stream_mode parameter controls what is yielded — values, updates, or debug information. For token-level streaming from LLMs within nodes you can use astream_events() which surfaces individual token deltas as they are generated."
+  },
+  {
+    "question": "What is the functional API in LangGraph?",
+    "ground_truth": "The functional API in LangGraph allows you to define graphs using Python functions decorated with @task and @entrypoint instead of the StateGraph class. It is designed for workflows that feel more like normal Python code, automatically handling state passing and checkpointing without requiring explicit TypedDict state schemas."
+  },
+  {
+    "question": "What are LangGraph stores used for?",
+    "ground_truth": "LangGraph stores provide long-term memory that persists across different conversation threads. Unlike checkpointers which save state within a single thread, stores allow agents to share and retrieve information across multiple sessions and users, enabling cross-session memory and knowledge accumulation."
+  },
+  {
+    "question": "How do you handle errors and retries in LangGraph?",
+    "ground_truth": "LangGraph supports fault tolerance through node-level retry policies configured with RetryPolicy. You can specify the maximum number of retry attempts, the exception types to retry on, and the backoff strategy. Nodes that raise exceptions matching the retry policy will be automatically retried without replaying the entire graph."
+  },
+  {
+    "question": "What is subgraph support in LangGraph?",
+    "ground_truth": "LangGraph supports subgraphs which are compiled graphs used as nodes within a parent graph. Subgraphs allow you to modularize complex workflows, reuse graph components, and build hierarchical agent architectures where each subgraph manages its own state schema and internal flow independently."
+  },
+  {
+    "question": "How do interrupts work in LangGraph?",
+    "ground_truth": "Interrupts in LangGraph allow a graph to pause execution mid-run and wait for human input or approval before continuing. You call interrupt() inside a node to pause, and the graph state is saved via the checkpointer. Execution resumes when the graph is invoked again with the same thread_id and the human's response."
+  }
+]
