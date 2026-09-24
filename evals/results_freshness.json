@@ -1,0 +1,192 @@
+{
+  "metadata": {
+    "metric": "freshness",
+    "judge_model": "qwen/qwen3.8-27b",
+    "question_count": 30,
+    "passed": 29,
+    "avg": 0.9666666666666667,
+    "parse_errors": 0
+  },
+  "results": [
+    {
+      "score": 1,
+      "reasoning": "The answer makes no claims about versions, dates, or recency. It simply lists the systems that inspired LangGraph's design, which is directly supported by the retrieved context.",
+      "index": 1,
+      "question": "What systems inspired LangGraph's design?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer makes no claims about specific versions, release dates, or recency status (e.g., 'latest', 'deprecated'). It describes the functional definition and usage of StateGraph, which is supported by the retrieved context.",
+      "index": 2,
+      "question": "What is a StateGraph in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer makes no claims about specific versions, release dates, or recency status (e.g., 'latest', 'deprecated'). It describes the functional definition of a thread and its relationship to checkpointers, which is supported by the retrieved context without any time-sensitive assertions.",
+      "index": 3,
+      "question": "What is a thread in the context of LangGraph checkpointers?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer makes no claims about specific version numbers, release dates, or 'latest'/'current' status. While the retrieved context mentions a 'New event streaming API (beta)' with version v3, the answer does not reference this or make any recency-based claims that would be unsupported or stale; it simply describes the standard streaming modes and concepts which are supported by the context.",
+      "index": 4,
+      "question": "How does streaming work in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer makes no claims about specific versions, release dates, or the 'latest'/'current' status of the features. It describes general mechanisms (interrupts, state handling) that are directly supported by the retrieved context without introducing any unsupported recency-based assertions.",
+      "index": 5,
+      "question": "How do interrupts work in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer makes no claims about specific version numbers, release dates, or 'latest'/'current' status that are unsupported by the context. While it mentions `version=\"v3\"` in the code example, this is directly supported by the retrieved context which shows `stream_events(..., version=\"v3\")`. The descriptions of `invoke` and `stream` behaviors are consistent with the provided documentation snippets.",
+      "index": 6,
+      "question": "What is the difference between invoke and stream in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer makes no claims about versions, dates, or recency. It accurately lists the interface methods supported by the retrieved context without adding any time-sensitive information.",
+      "index": 7,
+      "question": "What interface methods does a LangGraph checkpointer implement?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer makes no claims about versions, dates, or recency. It describes the function of the serializer based on the retrieved context, which supports the claims made regarding serialization of channel values and runtime errors for non-serializable data.",
+      "index": 8,
+      "question": "What is a serializer used for in LangGraph checkpointing?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer makes no claims about specific versions, dates, or recency status (e.g., 'latest', 'deprecated'). It addresses the functional behavior of graph modifications, which is supported by the retrieved context stating that adding or removing nodes does not break resume for existing threads.",
+      "index": 9,
+      "question": "Can you add or remove nodes in a LangGraph graph without breaking existing threads?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer makes no claims about specific version numbers, release dates, or recency status (e.g., 'latest', 'deprecated'). All technical details regarding interfaces, implementations, and usage modes are supported by the retrieved context.",
+      "index": 10,
+      "question": "What is a checkpointer in LangGraph and why is it needed?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer makes no claims about versions, dates, or recency. It correctly identifies that 'MemorySaver' is not in the context and lists the savers that are present, which are supported by the retrieved text.",
+      "index": 11,
+      "question": "What is MemorySaver in LangGraph and how do you use it?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer makes no claims about versions, dates, or recency (e.g., 'latest', 'current', 'deprecated'). It describes the conceptual definition of a super-step, which is supported by the retrieved context.",
+      "index": 12,
+      "question": "What is a super-step in LangGraph's execution model?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer makes no claims about specific version numbers, release dates, or 'latest'/'current' status. While it mentions features like 'New event streaming API (beta)' in the context, the answer itself does not assert recency or version-specific status that would require verification against the context's dates or version notes. All technical claims regarding subgraph functionality (persistence, state inspection, interrupts) are supported by the retrieved context.",
+      "index": 13,
+      "question": "What is subgraph support in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer makes no claims about specific version numbers, release dates, or recency status (e.g., 'latest', 'deprecated'). It lists the available backends and their implementations, which are directly supported by the retrieved context. Therefore, it automatically passes the freshness check.",
+      "index": 14,
+      "question": "What different checkpointer backends are available in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer makes no claims about specific versions, release dates, or the 'latest'/'current' status of the software. All use cases listed (human-in-the-loop, memory, time travel, fault-tolerance, pending writes, subgraph persistence) are directly supported by the retrieved context without any unsupported recency assertions.",
+      "index": 15,
+      "question": "What use cases require a checkpointer in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer makes no claims about versions, dates, or recency. It describes the mechanism for conditional routing using code examples that are directly supported by the retrieved context, which contains the exact same logic and API usage (`add_conditional_edges`, `should_continue` function).",
+      "index": 16,
+      "question": "How do you define conditional routing in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer makes no claims about specific version numbers, release dates, or 'latest'/'current' status. All technical descriptions regarding the graph algorithm (message passing, super-steps, Pregel inspiration, checkpointing) are directly supported by the retrieved context.",
+      "index": 17,
+      "question": "How does LangGraph's underlying graph algorithm work?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer makes no claims about versions, dates, or recency (e.g., 'latest', 'current', 'deprecated'). It describes the fundamental concepts of nodes and edges, which are supported by the retrieved context, and thus automatically passes the freshness check.",
+      "index": 18,
+      "question": "What are nodes and edges in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer makes no claims about versions, dates, or recency (e.g., 'latest', 'current', 'deprecated'). It lists core benefits that are directly supported by the retrieved context without adding any time-sensitive information.",
+      "index": 19,
+      "question": "What are the core benefits of using LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer makes no claims about versions, dates, or recency. It describes the START node as a placeholder for the entry point, which is consistent with the retrieved context showing its usage in graph construction (e.g., `graph.add_edge(START, \"node1\")`). Since there are no time-sensitive claims, it automatically passes the freshness check.",
+      "index": 20,
+      "question": "What is the START node in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer makes no claims about versions, dates, or recency (e.g., 'latest', 'current', 'deprecated'). It describes the mechanism of checkpointing (super-step boundaries) which is directly supported by the retrieved context. Since there are no time-sensitive claims, it automatically passes the freshness check.",
+      "index": 21,
+      "question": "At what point during graph execution does LangGraph create checkpoints?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer makes no claims about specific versions, dates, or recency (e.g., 'latest', 'current', 'deprecated'). It describes the functional behavior of the `compile` method (validation, configuration, creating a compiled object) which is directly supported by the retrieved context. Therefore, it automatically passes the freshness check.",
+      "index": 22,
+      "question": "What happens when you compile a LangGraph graph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer's claim that 'Since LangChain 1.0, all chains and agents in LangChain are thin wrappers around LangGraph' is directly supported by the retrieved context, which states that in LangChain 1.0, 'All chains and agents are now replaced with only one high level abstraction: an agent abstraction built on top of LangGraph.' Other claims about multimodal support and frontend integrations are also supported by the context.",
+      "index": 23,
+      "question": "How does LangGraph integrate with the rest of the LangChain ecosystem?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer makes no claims about versions, dates, or recency (e.g., 'latest', 'current', 'deprecated'). It describes the functional characteristics of the API based on the retrieved context, which is sufficient for a pass on freshness.",
+      "index": 24,
+      "question": "What is the functional API in LangGraph?"
+    },
+    {
+      "score": 0,
+      "reasoning": "The answer claims that LangGraph ships a ready-made `add_memory` helper and provides a specific import path (`from langgraph.add_memory import add_memory`) and API usage (`add_memory(builder, memory_config=...)`) that are not present in the retrieved context. The context only mentions 'Add and manage memory' as a documentation link and shows standard `StateGraph` construction without any `add_memory` function, making these specific implementation details unsupported by the provided text.",
+      "index": 25,
+      "question": "How do you add memory to a LangGraph agent?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer makes no claims about versions, dates, or recency. It describes the idempotency requirement for node logic, which is directly supported by the retrieved context stating that node logic must be designed so re-execution does not corrupt state.",
+      "index": 26,
+      "question": "What node-level guarantee does LangGraph require for safe resumption after a failure?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer makes no claims about specific version numbers, release dates, or recency status (e.g., 'latest', 'deprecated'). It describes the functional purpose of LangGraph stores (persistence, state management) which is supported by the retrieved context describing checkpointers and their methods. Therefore, it automatically passes the freshness check.",
+      "index": 27,
+      "question": "What are LangGraph stores used for?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer's claims regarding versions (0.1.0, 1.0.0), release dates (2024-02, 2025-10-20), and deprecation status are all directly supported by the retrieved context, which explicitly details these updates and the transition from chains/agents to the new agent abstraction.",
+      "index": 28,
+      "question": "How does LangChain differ from LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer makes no claims about specific version numbers, release dates, or 'latest'/'current' status. While it mentions a 'beta' feature in the context (event streaming API), the answer does not reference this feature or make any recency-related claims about it. All technical claims regarding error handling and retries are supported by the retrieved context.",
+      "index": 29,
+      "question": "How do you handle errors and retries in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer makes no claims about specific versions, release dates, or recency status (e.g., 'latest', 'deprecated'). It describes the mechanism of pending writes and their role in fault tolerance, which is fully supported by the retrieved context without any time-sensitive assertions.",
+      "index": 30,
+      "question": "What are pending writes in LangGraph and why do they matter?"
+    }
+  ]
+}

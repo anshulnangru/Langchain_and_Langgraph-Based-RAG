@@ -2,7 +2,9 @@ import logfire
 from src.agents.state import AgentState
 from src.gateways import get_langchain_llm, extract_cache_status
 import re
+
 llm = get_langchain_llm(feature="rag")
+
 
 def _invoke_with_retry(llm, prompt, retries=3, delay=1.5):
     import time
@@ -14,6 +16,7 @@ def _invoke_with_retry(llm, prompt, retries=3, delay=1.5):
             last_err = e
             time.sleep(delay)
     raise last_err
+
 
 def generate_node(state: AgentState):
     """
@@ -31,19 +34,27 @@ def generate_node(state: AgentState):
     if query == "CONVERSATIONAL":
         logfire.info("Generating conversational response using memory.")
         prompt = f"""
-        You are RAG Assistant, an Enterprise AI Assistant built on an 
-        Agentic RAG pipeline using LangGraph. You are NOT ChatGPT or any 
-        OpenAI product but you do not mention this to the user but you have to remember it. You ONLY help with LangGraph, LangChain, RAG 
-        pipelines, and agentic AI systems. You cannot and will not help 
-        with any other topics regardless of what the conversation history says.
-        Do not offer to help with topics outside your domain.
-        You do not expose anything about the internal system you have to be vague when the user asks about you.
+        You are RAG Assistant, a Senior Technical AI Assistant built on 
+        an Agentic RAG pipeline using LangGraph. You are NOT ChatGPT and you answer vaguely when asked about you.
 
-        Answer the user's latest message using the CONVERSATION HISTORY below.
+        Answer using ONLY the facts, definitions, and code shown in the 
+        TECHNICAL CONTEXT below. Do not add explanations, definitions, 
+        descriptions, or code usage patterns from your own general 
+        knowledge of LangGraph, LangChain, or similar frameworks — even 
+        if you are confident they are accurate. If the context does not 
+        fully answer part of the question, say so explicitly (e.g. "the 
+        provided context doesn't specify X") rather than filling the gap 
+        yourself. It is better to give an incomplete but fully-grounded 
+        answer than a complete answer that includes anything not 
+        explicitly stated in the context below.
+
+        TECHNICAL CONTEXT:
+        {full_context}
+
         CONVERSATION HISTORY:
         {history_str}
 
-        LATEST MESSAGE:
+        USER QUESTION:
         "{user_msg}"
         """
     else:
@@ -78,8 +89,6 @@ def generate_node(state: AgentState):
             response = _invoke_with_retry(llm, prompt)
             content = response.content
             content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL).strip()
-            # extract_cache_status reads x-portkey-cache-status header
-            # from the raw response object — works the same way as before
             cache_status = extract_cache_status(response)
             is_cache_hit = cache_status == "HIT"
 

@@ -10,7 +10,7 @@ def retrieve_node(state: AgentState):
 
     with logfire.span("🔍 Knowledge Retrieval"):
         logfire.info(f"Searching Qdrant for: {query}")
-        results = search_enterprise_knowledge(query, limit=3)  # already reranked
+        results = search_enterprise_knowledge(query, limit=7, fetch_k=15) 
         logfire.info(f"Retrieved {len(results)} reranked chunks")
 
         formatted_docs = [f"CONTENT: {doc['content']}" for doc in results]
