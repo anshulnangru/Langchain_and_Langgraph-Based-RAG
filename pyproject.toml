@@ -13,6 +13,7 @@ dependencies = [
     "flashrank>=0.2.10",
     "google-genai>=1.75.0",
     "google-generativeai>=0.8.6",
+    "html2text>=2025.4.15",
     "ipykernel>=7.3.0",
     "langchain>=1.3.14",
     "langchain-community>=0.4.2",

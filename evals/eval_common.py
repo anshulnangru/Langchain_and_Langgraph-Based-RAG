@@ -10,14 +10,88 @@ eval_<metric>.py script, so metrics stay isolated from each other.
 import json
 import os
 import time
+import uuid
 import argparse
 import requests
+from datetime import datetime, timezone
 from dotenv import load_dotenv
 
 load_dotenv()
 
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 DEFAULT_MODEL = "qwen/qwen3.8-27b"
+
+try:
+    from langsmith import Client as _LangSmithClient
+except ImportError:
+    _LangSmithClient = None
+
+_langsmith_client = None
+_langsmith_warned = False
+
+
+def get_langsmith_client():
+    """Lazily create a LangSmith client. Returns None (and prints a
+    one-time warning) if the langsmith package isn't installed or
+    LANGSMITH_API_KEY isn't set, so callers can always call this safely
+    and just skip logging when it's unavailable."""
+
+    global _langsmith_client, _langsmith_warned
+
+    if _langsmith_client is not None:
+        return _langsmith_client
+
+    if _LangSmithClient is None:
+        if not _langsmith_warned:
+            print("  (langsmith package not installed -- skipping LangSmith logging. "
+                  "pip install langsmith to enable it.)")
+            _langsmith_warned = True
+        return None
+
+    if not os.getenv("LANGSMITH_API_KEY"):
+        if not _langsmith_warned:
+            print("  (LANGSMITH_API_KEY not set -- skipping LangSmith logging.)")
+            _langsmith_warned = True
+        return None
+
+    _langsmith_client = _LangSmithClient()
+    return _langsmith_client
+
+
+def log_judge_run(metric_name: str, project_name: str, item: dict,
+                   verdict: dict, inputs: dict, model: str) -> None:
+    """Log one already-completed judge call to LangSmith as a standalone
+    run, purely for visualization/tracing. This never feeds back into the
+    judging logic and never touches another metric's data -- it just
+    records what this one isolated judge call saw and decided."""
+
+    client = get_langsmith_client()
+    if client is None:
+        return
+
+    now = datetime.now(timezone.utc)
+    try:
+        client.create_run(
+            id=uuid.uuid4(),
+            name=f"{metric_name}_q{item['index']}",
+            run_type="llm",
+            project_name=project_name,
+            inputs=inputs,
+            outputs={"score": verdict.get("score"), "reasoning": verdict.get("reasoning")},
+            start_time=now,
+            end_time=now,
+            extra={
+                "metadata": {
+                    "metric": metric_name,
+                    "question_index": item["index"],
+                    "judge_model": model,
+                    "parse_error": verdict.get("parse_error"),
+                }
+            },
+        )
+    except Exception as e:
+        # Never let a logging failure break the actual eval run.
+        print(f"    (LangSmith logging failed for q{item['index']}: {e})")
 
 
 class RateLimitExhausted(Exception):
@@ -225,5 +299,16 @@ def base_arg_parser(default_output: str) -> argparse.ArgumentParser:
     parser.add_argument(
         "--resume", action="store_true",
         help="Resume from an existing output file, skipping questions already scored."
+    )
+    parser.add_argument(
+        "--langsmith", action="store_true",
+        help="Also log each judge call to LangSmith for tracing/visualization "
+             "(requires LANGSMITH_API_KEY in .env). Purely additive -- never "
+             "affects judging."
+    )
+    parser.add_argument(
+        "--langsmith-project", default="agentic-rag-isolated-evals",
+        help="LangSmith project to log runs into. Use the same project across "
+             "all four scripts to see everything together."
     )
     return parser

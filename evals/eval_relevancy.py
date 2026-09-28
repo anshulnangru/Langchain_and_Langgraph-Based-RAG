@@ -24,6 +24,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from evals.eval_common import (
     load_frozen, call_judge, parse_verdict, base_arg_parser,
     save_progress, load_existing_verdicts, print_summary, RateLimitExhausted,
+    log_judge_run,
 )
 
 SYSTEM_PROMPT = """You are a strict but fair evaluator judging ANSWER RELEVANCY only.
@@ -119,6 +120,13 @@ def main():
             per_question[i] = verdict
 
             print(f"  score={verdict['score']}  {verdict.get('reasoning', '')[:80]}")
+
+            if args.langsmith:
+                log_judge_run(
+                    "relevancy", args.langsmith_project, item, verdict,
+                    inputs={"question": item["question"], "answer": item["answer"]},
+                    model=args.model,
+                )
 
         except RateLimitExhausted as e:
             print(f"\n⚠️  {e}")

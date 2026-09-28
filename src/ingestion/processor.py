@@ -12,7 +12,7 @@ import logfire
 MAX_CHUNKS_PER_FILE = 100
 
 # Seconds to sleep between files to ease pressure on the embedding API.
-SLEEP_BETWEEN_FILES = 3
+SLEEP_BETWEEN_FILES = 15
 
 from qdrant_client import QdrantClient
 from qdrant_client.http import models

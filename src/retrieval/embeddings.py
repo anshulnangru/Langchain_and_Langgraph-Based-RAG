@@ -28,21 +28,30 @@ JINA_MODEL = "jina-embeddings-v3"
 JINA_TASK_QUERY = "retrieval.query"
 JINA_TASK_PASSAGE = "retrieval.passage"
 
+# Pause between successive embed batches within the same file, Jina only.
+# Without this, a file needing 2+ batches (anything over BATCH_SIZE chunks)
+# fires them back-to-back with zero gap, which was reliably tripping Jina's
+# rate limit on dense files even when SLEEP_BETWEEN_FILES (in processor.py)
+# gave plenty of space *between* files. This is the intra-file gap that was
+# missing.
+INTER_BATCH_SLEEP_SECONDS = 3
+
 # ── Model initialisation ───────────────────────────────────────────────────────
 
 def _probe_jina():
     """Try one embed call to verify Jina is reachable, with retry on transient
-    DNS blips — same failure class ('No address associated with hostname' /
-    'Name or service not known') seen repeatedly in Qdrant calls elsewhere in
-    this project. Without this retry, a single transient DNS failure during
-    ingest silently downgrades the *entire* run to the 768-dim fallback model
-    with no error and no visibility — since _active_model/_model_type are
-    process-global, decided once, this would affect every chunk embedded by
-    that process."""
+    DNS blips and rate limits. Without retrying on 429s specifically, a
+    single rate-limited probe call — very likely right after a heavy
+    ingestion run that just hammered the Jina API — silently and
+    permanently downgrades the *entire* process to the 768-dim fallback
+    model, with no visible error, since _active_model/_model_type are
+    decided once and cached globally. Every subsequent query then gets
+    embedded at the wrong dimension and Qdrant rejects every search with a
+    'expected dim: 1024, got 768' error -- which is exactly what happened."""
     if not settings.JINA_API_KEY:
         return False
     last_err = None
-    for attempt in range(1, 4):
+    for attempt in range(1, 5):
         try:
             resp = requests.post(
                 JINA_API_URL,
@@ -59,22 +68,26 @@ def _probe_jina():
         except Exception as e:
             last_err = e
             msg = str(e)
+            msg_lower = msg.lower()
+            is_rate_limit = any(x in msg_lower for x in ("429", "rate", "quota"))
             transient = (
                 "No address associated" in msg
                 or "Name or service not known" in msg
                 or "Temporary failure in name resolution" in msg
                 or "Connection" in msg
+                or is_rate_limit
             )
-            if not transient or attempt == 3:
+            if not transient or attempt == 4:
                 logfire.warning(
                     f"Jina probe failed after {attempt} attempt(s): {e}. "
                     f"Trying Sentence Transformer next."
                 )
                 return False
-            wait = 2 ** (attempt - 1)
+            # Rate limits need longer waits than DNS blips.
+            wait = 10 * attempt if is_rate_limit else 2 ** (attempt - 1)
             logfire.warning(
-                f"Jina probe hit transient error (attempt {attempt}/3): {e} "
-                f"— retrying in {wait}s."
+                f"Jina probe hit {'rate limit' if is_rate_limit else 'transient error'} "
+                f"(attempt {attempt}/4): {e} — retrying in {wait}s."
             )
             time.sleep(wait)
     return False
@@ -96,7 +109,7 @@ def _init():
     if jina:
         _active_model = jina
         _model_type = "jina"
-        
+
     else:
         _active_model = _load_fallback()
         _model_type = "fallback"
@@ -133,7 +146,10 @@ def _embed_jina(batch: list[str], task: str) -> list[list[float]]:
             err = str(e).lower()
             is_rate_limit = any(x in err for x in ("429", "rate", "quota"))
             if is_rate_limit and attempt < 3:
-                wait = 2 ** attempt
+                # 5s, 10s, 20s -- longer than the original 1/2/4s, since that
+                # was proving too short to actually clear the rate-limit
+                # window once a batch had already tripped it.
+                wait = min(5 * (2 ** attempt), 60)
                 logfire.warning(f"Jina rate limit — retrying in {wait}s (attempt {attempt+1}/4).")
                 time.sleep(wait)
             else:
@@ -164,8 +180,15 @@ def embed_query(query: str) -> list[float]:
 def embed_texts(texts: list[str]) -> list[list[float]]:
     _init()
     all_embeddings: list[list[float]] = []
-    for i in range(0, len(texts), BATCH_SIZE):
+    batch_starts = list(range(0, len(texts), BATCH_SIZE))
+    for batch_num, i in enumerate(batch_starts):
         batch = texts[i : i + BATCH_SIZE]
         with logfire.span("Embed batch", model=_model_type, start=i, size=len(batch)):
             all_embeddings.extend(_embed_batch(batch))
+        # Pause between batches (not after the last one) to stay under
+        # Jina's rate limit proactively, instead of relying entirely on
+        # reactive backoff inside _embed_jina after a 429 already happened.
+        is_last_batch = batch_num == len(batch_starts) - 1
+        if _model_type == "jina" and not is_last_batch:
+            time.sleep(INTER_BATCH_SLEEP_SECONDS)
     return all_embeddings

@@ -28,19 +28,19 @@
     },
     {
       "score": 1,
-      "reasoning": "The answer directly addresses the question by explaining the different streaming modes in LangGraph, how to use the `stream` API, and providing code examples, which fully covers the topic of how streaming works in that framework.",
+      "reasoning": "The answer directly addresses the question by explaining the different streaming modes in LangGraph, providing code examples for usage, and detailing how the streaming mechanism works (including reconnection logic).",
       "index": 4,
       "question": "How does streaming work in LangGraph?"
     },
     {
       "score": 1,
-      "reasoning": "The answer directly addresses the question by explaining how interrupts work in LangGraph, specifically mentioning the `interrupt()` function, pausing/resuming execution, and propagation through subgraphs.",
+      "reasoning": "The answer directly addresses how interrupts work in LangGraph by explaining the `interrupt()` function, the pause/resume mechanism, and related state management details.",
       "index": 5,
       "question": "How do interrupts work in LangGraph?"
     },
     {
       "score": 1,
-      "reasoning": "The answer directly addresses the question by clearly defining both 'invoke' and 'stream' in the context of LangGraph and explicitly comparing their differences in execution style, output, and use cases.",
+      "reasoning": "The answer directly addresses the question by clearly defining both `invoke` and `stream` in the context of LangGraph and providing a comparison table that highlights their differences in execution style, output, and use cases.",
       "index": 6,
       "question": "What is the difference between invoke and stream in LangGraph?"
     },
@@ -52,25 +52,25 @@
     },
     {
       "score": 1,
-      "reasoning": "The answer directly addresses the question by explaining that a serializer in LangGraph is used to convert state values into a persistable format for checkpointing and to deserialize them upon resumption.",
+      "reasoning": "The answer directly addresses the question by explaining that a serializer in LangGraph is used to convert graph state (channel values) into a persistable format for checkpointing.",
       "index": 8,
       "question": "What is a serializer used for in LangGraph checkpointing?"
     },
     {
       "score": 1,
-      "reasoning": "The answer directly addresses the question of whether adding or removing nodes in a LangGraph graph breaks existing threads, providing a clear 'Yes' and explaining the mechanism (checkpoints vs. current graph definition).",
+      "reasoning": "The answer directly addresses the question of whether adding or removing nodes in a LangGraph graph breaks existing threads, providing a clear 'Yes' and explaining the mechanism (checkpointing and resuming with the current graph definition).",
       "index": 9,
       "question": "Can you add or remove nodes in a LangGraph graph without breaking existing threads?"
     },
     {
       "score": 1,
-      "reasoning": "The answer directly addresses both parts of the question: it defines what a checkpointer is in LangGraph and explains why it is needed (human-in-the-loop, memory, fault tolerance, etc.).",
+      "reasoning": "The answer directly addresses both parts of the question: it defines what a checkpointer is in LangGraph and explains why it is needed (for memory, human-in-the-loop, fault tolerance, etc.).",
       "index": 10,
       "question": "What is a checkpointer in LangGraph and why is it needed?"
     },
     {
       "score": 1,
-      "reasoning": "The answer directly addresses the question by clarifying that 'MemorySaver' is not a standard component in LangGraph (likely referring to `InMemorySaver` or similar) and explains why it cannot be described based on the provided context. It remains on-topic regarding LangGraph memory/checkpointing components.",
+      "reasoning": "The answer directly addresses what MemorySaver is in LangGraph (identifying it as the in-memory checkpointing implementation, noting the class name InMemorySaver) and provides clear, step-by-step usage instructions, which fully matches the question's intent.",
       "index": 11,
       "question": "What is MemorySaver in LangGraph and how do you use it?"
     },
@@ -100,13 +100,13 @@
     },
     {
       "score": 1,
-      "reasoning": "The answer directly addresses how to define conditional routing in LangGraph by explaining the use of `add_conditional_edges` and providing a clear code example, which matches the question's intent perfectly.",
+      "reasoning": "The answer directly addresses how to define conditional routing in LangGraph by explaining the use of conditional edge functions and the `add_conditional_edges` method, providing clear code examples that match the question's intent.",
       "index": 16,
       "question": "How do you define conditional routing in LangGraph?"
     },
     {
       "score": 1,
-      "reasoning": "The answer directly addresses the question by explaining LangGraph's underlying graph algorithm, specifically detailing its Pregel-inspired message-passing model, super-steps, and execution flow.",
+      "reasoning": "The answer directly addresses the question by explaining LangGraph's underlying graph algorithm, specifically detailing its message-passing model, nodes, edges, and super-step execution mechanism.",
       "index": 17,
       "question": "How does LangGraph's underlying graph algorithm work?"
     },
@@ -124,7 +124,7 @@
     },
     {
       "score": 1,
-      "reasoning": "The answer directly addresses the question by defining the START node in LangGraph as a special placeholder for the entry point and explaining its usage and behavior.",
+      "reasoning": "The answer directly addresses the question by defining the START node in LangGraph as a special marker for the entry point of the graph and explaining its function in defining the first edges.",
       "index": 20,
       "question": "What is the START node in LangGraph?"
     },
@@ -142,7 +142,7 @@
     },
     {
       "score": 1,
-      "reasoning": "The answer directly addresses how LangGraph integrates with the LangChain ecosystem by detailing specific integration points such as high-level abstractions, observability, persistence, and frontend libraries.",
+      "reasoning": "The answer directly addresses how LangGraph integrates with the LangChain ecosystem by detailing its relationship with core LangChain, LangSmith, persistence layers, and frontend integrations.",
       "index": 23,
       "question": "How does LangGraph integrate with the rest of the LangChain ecosystem?"
     },
@@ -154,37 +154,37 @@
     },
     {
       "score": 1,
-      "reasoning": "The answer directly addresses the question by explaining how to add memory to a LangGraph agent, providing code examples and configuration details relevant to the topic.",
+      "reasoning": "The answer directly addresses the question by explaining how to add memory to a LangGraph agent, providing a code example using `add_memory` and discussing both short-term and long-term memory options.",
       "index": 25,
       "question": "How do you add memory to a LangGraph agent?"
     },
     {
       "score": 1,
-      "reasoning": "The answer directly addresses the question by identifying idempotency as the required node-level guarantee for safe resumption in LangGraph, explaining why it is necessary and how to implement it.",
+      "reasoning": "The answer directly addresses the question by identifying idempotency as the required node-level guarantee for safe resumption in LangGraph.",
       "index": 26,
       "question": "What node-level guarantee does LangGraph require for safe resumption after a failure?"
     },
     {
       "score": 1,
-      "reasoning": "The answer directly addresses the question by explaining that LangGraph stores are used for persisting graph state, enabling fault tolerance, and managing state history, which aligns with the intent of the question.",
+      "reasoning": "The answer directly addresses the question by listing specific purposes and functions of LangGraph stores, such as persisting checkpoints, tracking writes, and enabling fault tolerance.",
       "index": 27,
       "question": "What are LangGraph stores used for?"
     },
     {
       "score": 1,
-      "reasoning": "The answer directly addresses the question by providing a detailed comparison table and summary that highlights the specific differences between LangChain and LangGraph in terms of focus, abstractions, workflow control, and use cases.",
+      "reasoning": "The answer directly addresses the question by providing a detailed comparison table and summary explaining the differences between LangChain and LangGraph in terms of focus, abstractions, and use cases.",
       "index": 28,
       "question": "How does LangChain differ from LangGraph?"
     },
     {
       "score": 1,
-      "reasoning": "The answer directly addresses the question by detailing specific mechanisms for error handling (timeouts, error handlers) and retries (retry policies, idempotency) within LangGraph.",
+      "reasoning": "The answer directly addresses the question by detailing specific mechanisms for handling errors (error handlers, timeouts) and retries (retry policies, checkpointing) in LangGraph, including code examples and configuration details.",
       "index": 29,
       "question": "How do you handle errors and retries in LangGraph?"
     },
     {
       "score": 1,
-      "reasoning": "The answer directly addresses both parts of the question: it defines what pending writes are in the context of LangGraph (per-node outputs persisted during a super-step) and explains why they matter (fault tolerance and avoiding redundant re-execution).",
+      "reasoning": "The answer directly addresses both parts of the question: it defines what pending writes are in the context of LangGraph and explains why they matter (fault tolerance, efficient recovery, etc.).",
       "index": 30,
       "question": "What are pending writes in LangGraph and why do they matter?"
     }
