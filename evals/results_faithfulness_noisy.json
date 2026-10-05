@@ -1,0 +1,192 @@
+{
+  "metadata": {
+    "metric": "faithfulness",
+    "judge_model": "qwen/qwen3.8-27b",
+    "question_count": 30,
+    "passed": 21,
+    "avg": 0.7,
+    "parse_errors": 0
+  },
+  "results": [
+    {
+      "score": 0,
+      "reasoning": "The answer claims Pregel is a 'graph-processing framework from Google' and Apache Beam is a 'unified batch and streaming data-processing model'. While the context confirms LangGraph is inspired by Pregel and Apache Beam, it does not provide these specific descriptions or definitions for those systems, making those details unsupported by the provided text.",
+      "index": 1,
+      "question": "What systems inspired LangGraph's design?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer accurately reflects the retrieved context. It correctly identifies StateGraph as the main graph class parameterized by a user-defined State object. It correctly summarizes the workflow of defining nodes/edges, compiling (which involves structural checks and setting runtime args like checkpointers/breakpoints), and executing (which involves super-steps and persistence). All claims are grounded in the provided text.",
+      "index": 2,
+      "question": "What is a StateGraph in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer accurately synthesizes information from the retrieved context. It correctly identifies the thread as the unit tracked by checkpointers, identified by `thread_id` in the config (supported by the 'Checkpointer interface' and code examples). It correctly lists the features supported by checkpointers (human-in-the-loop, memory, time travel, fault-tolerance) and their relationship to threads (supported by the 'Why use checkpointers' section). It also correctly describes the methods `get_state` and `get_state_history` and the ability to fork/resume (supported by the 'Time travel' and code examples sections).",
+      "index": 3,
+      "question": "What is a thread in the context of LangGraph checkpointers?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer accurately synthesizes information from the retrieved context regarding stream modes (values, updates, messages, custom, checkpoints, tasks, debug), the join/rejoin mechanism (threadId, disconnect vs stop), agent progress tracking, graph execution super-steps, and the compilation process. All specific claims, such as the behavior of `stream.disconnect()` and the definition of super-steps, are directly supported by the provided text.",
+      "index": 4,
+      "question": "How does streaming work in LangGraph?"
+    },
+    {
+      "score": 0,
+      "reasoning": "The answer describes how checkpoints and super-steps work in LangGraph, but the question specifically asks how interrupts work. The retrieved context explains that interrupts pause execution and allow resuming, but the answer fails to address the mechanism of interrupts (e.g., using `interrupt()`, pausing, resuming with `Command`) and instead provides a detailed explanation of checkpointing that, while partially grounded in the context, does not answer the specific question asked.",
+      "index": 5,
+      "question": "How do interrupts work in LangGraph?"
+    },
+    {
+      "score": 0,
+      "reasoning": "The answer contains several claims not supported by the retrieved context, specifically regarding the `invoke` method. The context only provides examples of `stream_events` and `stream`, and does not mention the `invoke` method, its return values, or its lack of support for join-and-rejoin or interrupts. Additionally, the claim that `invoke` is a 'primary way to run a graph' alongside `stream` is not explicitly stated in the provided text, which focuses on the functional API and streaming patterns.",
+      "index": 6,
+      "question": "What is the difference between invoke and stream in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer accurately lists the synchronous and asynchronous methods (`.put`, `.put_writes`, `.get_tuple`, `.list` and their async counterparts) defined in the `BaseCheckpointSaver` interface as described in the retrieved context. The descriptions of the methods' functions are also consistent with the context.",
+      "index": 7,
+      "question": "What interface methods does a LangGraph checkpointer implement?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer is fully supported by the retrieved context. The context explicitly states that checkpointers use serializer objects to serialize channel values in the state and that providing non-serializable inputs/outputs results in a runtime error. The list of persistence layers (memory, SQLite, Postgres, MongoDB, Cosmos DB) is also supported by the context chunks describing the various checkpointer implementations.",
+      "index": 8,
+      "question": "What is a serializer used for in LangGraph checkpointing?"
+    },
+    {
+      "score": 0,
+      "reasoning": "The answer claims that old threads will 'continue from where they left off using the updated graph' and implies they will follow the new flow (e.g., 'new threads will follow the new flow, while old threads will continue... using the updated graph'). However, the context explicitly states under 'Business compatibility' that if the meaning of the graph changes (e.g., inserting a new step), threads that have already passed certain nodes should continue straight to the next node in the *old* flow, not the new one. The context distinguishes between the technical ability to resume (which works) and the behavioral expectation that old threads should not retroactively apply new logic. The answer's phrasing suggests old threads execute the 'current graph definition' in a way that might imply they traverse new nodes, which contradicts the specific guidance that old threads should maintain the old flow logic where applicable.",
+      "index": 9,
+      "question": "Can you add or remove nodes in a LangGraph graph without breaking existing threads?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer accurately synthesizes information from the retrieved context regarding the definition of a checkpointer, the specific backend implementations (InMemory, SQLite, Postgres, MongoDB, Azure Cosmos DB), the reasons for using them (human-in-the-loop, memory, time travel, fault-tolerance, pending writes), and the modes of operation (per-invocation, per-thread, stateless). All claims are directly supported by the provided text.",
+      "index": 10,
+      "question": "What is a checkpointer in LangGraph and why is it needed?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer correctly identifies that the retrieved context does not mention a component called 'MemorySaver'. It accurately lists the savers that are present in the context (InMemorySaver, SqliteSaver, PostgresSaver, MongoDBSaver, CosmosDBSaver) and correctly states that there is no reference to 'MemorySaver' in the provided text.",
+      "index": 11,
+      "question": "What is MemorySaver in LangGraph and how do you use it?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer accurately reflects the retrieved context, which defines a super-step as a single 'tick' where scheduled nodes execute (potentially in parallel), states that checkpoints are created at these boundaries, and confirms that in a sequential graph like `START -> A -> B -> END`, each node runs in its own super-step.",
+      "index": 12,
+      "question": "What is a super-step in LangGraph's execution model?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer accurately synthesizes information from the retrieved context regarding subgraph creation, persistence modes, state inspection limitations (static discovery), interrupts, multi-turn memory, and handling of multiple calls. All specific claims, such as the conflict with stateful persistence for the same subgraph instance and the requirement for static discovery for `get_state`, are directly supported by the text.",
+      "index": 13,
+      "question": "What is subgraph support in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer accurately lists the checkpointer backends (In-memory, SQLite, PostgreSQL, MongoDB, Azure Cosmos DB) and their corresponding classes as described in the retrieved context. The usage cases (e.g., experimentation for In-memory/SQLite, production for Postgres/MongoDB) and the implementation of the `BaseCheckpointSaver` interface are all supported by the text. The mention of the `checkpointer=` argument is supported by the code examples in the context.",
+      "index": 14,
+      "question": "What different checkpointer backends are available in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer accurately synthesizes the use cases listed in the retrieved context (Human-in-the-loop, Memory, Time travel, Fault-tolerance, Pending writes) and correctly includes the additional requirements for subgraph persistence and per-thread state accumulation found in the 'Core concepts' and table sections. All claims are directly supported by the text.",
+      "index": 15,
+      "question": "What use cases require a checkpointer in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer accurately describes the process of defining conditional routing in LangGraph using `add_conditional_edges`, which is explicitly supported by the retrieved context. The code snippets provided in the answer match the examples found in the context (specifically the `should_continue` function and the graph building steps), and the explanation of how the routing function works is consistent with the context.",
+      "index": 16,
+      "question": "How do you define conditional routing in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer accurately summarizes the message-passing, super-step execution model, node activation states, and termination conditions described in the retrieved context. It also correctly links the super-step boundaries to the fault-tolerance and checkpointing capabilities mentioned in the text.",
+      "index": 17,
+      "question": "How does LangGraph's underlying graph algorithm work?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer accurately describes nodes as units of computation that receive state and return updates, and edges as defining the flow between nodes, which is supported by the context's description of message passing and the code examples showing `add_node` and `add_edge`. The explanation of super-steps, parallel execution, and the START/END nodes is also fully grounded in the provided text.",
+      "index": 18,
+      "question": "What are nodes and edges in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer accurately summarizes the six core benefits listed in the retrieved context (mixing deterministic/agentic steps, persistence, human-in-the-loop, comprehensive memory, debugging with LangSmith, and production-ready deployment) without introducing unsupported claims.",
+      "index": 19,
+      "question": "What are the core benefits of using LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer is fully supported by the context. The context explicitly shows `START` being imported and used in `graph.add_edge(START, \"node1\")` to define the entry point of the graph. It also explains the execution model where nodes start in an `inactive` state and become `active` upon receiving a message, which supports the claim that START triggers the first super-step and activates the first node.",
+      "index": 20,
+      "question": "What is the START node in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer accurately reflects the retrieved context, which states that LangGraph creates checkpoints at super-step boundaries, does not create them mid-function inside a node, and commits the full state snapshot once the super-step completes while persisting per-node writes during the step.",
+      "index": 21,
+      "question": "At what point during graph execution does LangGraph create checkpoints?"
+    },
+    {
+      "score": 0,
+      "reasoning": "The answer claims that the compiled graph 'knows how to route messages' and 'manage super-steps' as part of the compilation step's output description, but the context states that compilation is a 'pretty simple step' that provides 'basic checks' and allows specifying runtime args. While the compiled graph does execute these processes, the context does not support the claim that the compilation step itself involves configuring the graph to 'route messages' or 'manage super-steps' in the way described (implying complex logic setup rather than just validation and arg passing). More critically, the answer states compilation 'checks for... missing edges', but the context only explicitly mentions 'no orphaned nodes, etc' as the basic checks, making the specific claim about 'missing edges' a potential hallucination or unsupported detail. However, the strongest failure is the characterization of the compilation step as creating an object that 'knows how to route messages' as a distinct action of the compilation process, whereas the context defines compilation strictly as validation and argument specification.",
+      "index": 22,
+      "question": "What happens when you compile a LangGraph graph?"
+    },
+    {
+      "score": 0,
+      "reasoning": "The answer claims that LangChain's high-level abstractions (agents, tools, memory, etc.) are 'thin wrappers around LangGraph's graph API.' The context only supports that the 'agent abstraction' is built on top of LangGraph (specifically in LangChain 1.0), but it does not state that tools or memory are wrappers around LangGraph; in fact, the context lists 'Comprehensive memory' as a benefit of LangGraph itself, not necessarily a wrapper in LangChain. Additionally, the claim that LangSmith provides 'checkpointing' hooks is not explicitly supported; the context mentions LangSmith for observability and deployment, and lists checkpointers as separate packages (some used in LangSmith), but does not state LangSmith provides checkpointing hooks for LangGraph workflows in the manner described.",
+      "index": 23,
+      "question": "How does LangGraph integrate with the rest of the LangChain ecosystem?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer accurately reflects the retrieved context, which states that the Functional API is chosen when adding LangGraph features to existing code with minimal changes, for simple linear workflows, or for rapid prototyping. It correctly lists the core features (persistence, streaming, human-in-the-loop, memory) provided by both APIs.",
+      "index": 24,
+      "question": "What is the functional API in LangGraph?"
+    },
+    {
+      "score": 0,
+      "reasoning": "The answer fabricates specific API calls and imports (e.g., `from langgraph.add_memory import add_memory`, `from langgraph.persistence import Persistence`, `from langgraph.deepagents.memory import PersistentMemory`) that are not present in the retrieved context. The context only provides links to documentation pages and general descriptions of memory features, but does not contain the specific code examples or function names cited in the answer.",
+      "index": 25,
+      "question": "How do you add memory to a LangGraph agent?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer accurately reflects the retrieved context, which explicitly states that node logic must be designed for idempotency to prevent state corruption upon re-execution after a failure or interrupt, and suggests specific techniques like idempotency keys and upserts.",
+      "index": 26,
+      "question": "What node-level guarantee does LangGraph require for safe resumption after a failure?"
+    },
+    {
+      "score": 0,
+      "reasoning": "The answer incorrectly identifies 'LangGraph stores' as 'checkpointer implementations' (e.g., InMemorySaver, PostgresSaver). The retrieved context defines checkpointers as part of the `langgraph-checkpoint` package and describes them as runtime arguments for persistence, but it does not use the term 'LangGraph stores' to refer to checkpointers. In LangGraph terminology, 'stores' typically refer to long-term memory storage (distinct from checkpointers), which is not explicitly defined in the provided text as being synonymous with checkpointers. Therefore, the core definition in the answer is not supported by the context.",
+      "index": 27,
+      "question": "What are LangGraph stores used for?"
+    },
+    {
+      "score": 0,
+      "reasoning": "The answer incorrectly attributes the 'Functional API' and 'Graph API' distinction to LangChain and LangGraph respectively. The retrieved context explicitly states that both APIs are part of LangGraph ('Choose the Graph API... Choose the Functional API... Both APIs provide the same core LangGraph features'), whereas LangChain is described as providing high-level abstractions and integrations. Additionally, the claim that LangChain uses 'ReAct-style agents' as its primary workflow control is misleading given the context states that in 2025-10, all chains/agents were replaced by a single agent abstraction built on LangGraph.",
+      "index": 28,
+      "question": "How does LangChain differ from LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer accurately synthesizes information from the retrieved context regarding retry policies, per-node timeouts, node-level error handlers, graceful shutdown, and idempotency. All specific claims (such as the `TimeoutPolicy` arguments, `NodeTimeoutError` behavior, `RunControl` usage, and the distinction between Python-only features and cross-language support) are directly supported by the provided text.",
+      "index": 29,
+      "question": "How do you handle errors and retries in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer accurately describes pending writes as per-node outputs stored in the `checkpoint_writes` table during a super-step, which are distinct from full state snapshots. It correctly explains their purpose for fault tolerance and efficiency (avoiding re-execution of successful nodes upon resume), all of which are explicitly supported by the retrieved context.",
+      "index": 30,
+      "question": "What are pending writes in LangGraph and why do they matter?"
+    }
+  ]
+}

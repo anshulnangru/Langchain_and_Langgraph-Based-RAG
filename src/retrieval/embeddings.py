@@ -109,10 +109,13 @@ def _init():
     if jina:
         _active_model = jina
         _model_type = "jina"
-
     else:
-        _active_model = _load_fallback()
-        _model_type = "fallback"
+        raise RuntimeError(
+            "Jina embeddings are unavailable (probe failed) and the Qdrant "
+            "collection is 1024-dim. Refusing to fall back to the 768-dim "
+            "model, which would return wrong-dimension vectors for every "
+            "query. Check JINA_API_KEY / balance / rate limits."
+        )
 
 
 # ── Public helpers ─────────────────────────────────────────────────────────────

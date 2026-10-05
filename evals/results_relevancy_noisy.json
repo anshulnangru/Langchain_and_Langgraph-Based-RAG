@@ -1,0 +1,192 @@
+{
+  "metadata": {
+    "metric": "relevancy",
+    "judge_model": "qwen/qwen3.8-27b",
+    "question_count": 30,
+    "passed": 27,
+    "avg": 0.9,
+    "parse_errors": 0
+  },
+  "results": [
+    {
+      "score": 1,
+      "reasoning": "The answer directly addresses the question by listing specific systems (Pregel, Apache Beam, NetworkX) that inspired LangGraph's design.",
+      "index": 1,
+      "question": "What systems inspired LangGraph's design?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer directly addresses the question by defining StateGraph as the core class in LangGraph and explaining its primary functions (defining structure, compiling, and executing workflows).",
+      "index": 2,
+      "question": "What is a StateGraph in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer directly addresses the question by defining a thread in the context of LangGraph checkpointers as the logical unit of execution identified by a thread_id, and explains how checkpointers use it to persist and retrieve state.",
+      "index": 3,
+      "question": "What is a thread in the context of LangGraph checkpointers?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer directly addresses the question by explaining the mechanisms, modes, and usage of streaming in LangGraph, covering both the API and the underlying execution flow.",
+      "index": 4,
+      "question": "How does streaming work in LangGraph?"
+    },
+    {
+      "score": 0,
+      "reasoning": "The question asks about how interrupts work in LangGraph, but the answer discusses checkpoint creation and storage mechanisms, which is a different topic.",
+      "index": 5,
+      "question": "How do interrupts work in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer directly addresses the question by comparing the `invoke` and `stream` methods in LangGraph, detailing their execution styles, return values, and use cases.",
+      "index": 6,
+      "question": "What is the difference between invoke and stream in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer directly addresses the question by listing the specific interface methods (synchronous and asynchronous) that a LangGraph checkpointer implements, which matches the user's intent.",
+      "index": 7,
+      "question": "What interface methods does a LangGraph checkpointer implement?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer directly addresses the question by explaining that a serializer in LangGraph checkpointing is used to convert graph state into a storable format and back, which is the specific function asked about.",
+      "index": 8,
+      "question": "What is a serializer used for in LangGraph checkpointing?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer directly addresses the question of whether adding or removing nodes in a LangGraph graph breaks existing threads, providing a clear 'Yes' and explaining the mechanism (checkpointing and resuming with the current graph definition).",
+      "index": 9,
+      "question": "Can you add or remove nodes in a LangGraph graph without breaking existing threads?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer directly addresses both parts of the question: it defines what a checkpointer is in LangGraph and explains why it is needed by listing specific features like human-in-the-loop, memory, and fault tolerance.",
+      "index": 10,
+      "question": "What is a checkpointer in LangGraph and why is it needed?"
+    },
+    {
+      "score": 0,
+      "reasoning": "The answer fails to address the question because it incorrectly claims that 'MemorySaver' does not exist in LangGraph (it is a valid, commonly used checkpointer alias for InMemorySaver). By denying the existence of the subject and refusing to explain its usage, the answer does not provide the requested information.",
+      "index": 11,
+      "question": "What is MemorySaver in LangGraph and how do you use it?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer directly defines a super-step in the context of LangGraph's execution model, explaining its function as a tick where scheduled nodes execute and checkpoints are written, which fully addresses the question.",
+      "index": 12,
+      "question": "What is a super-step in LangGraph's execution model?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer directly addresses the question by defining subgraph support in LangGraph and detailing its key features such as creation, persistence, state inspection, and interrupts.",
+      "index": 13,
+      "question": "What is subgraph support in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer directly addresses the question by listing the specific checkpointer backends available in LangGraph, including their class names and use cases.",
+      "index": 14,
+      "question": "What different checkpointer backends are available in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer directly addresses the question by listing specific use cases (human-in-the-loop, memory, debugging, fault tolerance) that require a checkpointer in LangGraph.",
+      "index": 15,
+      "question": "What use cases require a checkpointer in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer directly addresses how to define conditional routing in LangGraph by explaining the use of `add_conditional_edges` and providing a clear, step-by-step code example.",
+      "index": 16,
+      "question": "How do you define conditional routing in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer directly addresses the question by explaining LangGraph's underlying graph algorithm, specifically detailing its message-passing model, nodes, edges, and super-step execution mechanism.",
+      "index": 17,
+      "question": "How does LangGraph's underlying graph algorithm work?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer directly defines both nodes and edges in LangGraph, explaining their roles and how they are used, which fully addresses the question.",
+      "index": 18,
+      "question": "What are nodes and edges in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer directly addresses the question by listing specific core benefits of using LangGraph, such as persistence, human-in-the-loop capabilities, and deterministic control.",
+      "index": 19,
+      "question": "What are the core benefits of using LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer directly addresses the question by defining the START node in LangGraph as a special marker representing the entry point of the graph, explaining its function and usage.",
+      "index": 20,
+      "question": "What is the START node in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer directly addresses the specific timing of checkpoint creation in LangGraph by stating it occurs at super-step boundaries, which is exactly what the question asked.",
+      "index": 21,
+      "question": "At what point during graph execution does LangGraph create checkpoints?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer directly addresses the question by explaining the specific steps and outcomes of compiling a LangGraph graph, including validation, configuration, and the creation of the executable object.",
+      "index": 22,
+      "question": "What happens when you compile a LangGraph graph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer directly addresses how LangGraph integrates with the LangChain ecosystem by discussing core abstractions, observability via LangSmith, and persistence, which aligns perfectly with the question's intent.",
+      "index": 23,
+      "question": "How does LangGraph integrate with the rest of the LangChain ecosystem?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer directly addresses the question by defining the Functional API in LangGraph and explaining its purpose and capabilities.",
+      "index": 24,
+      "question": "What is the functional API in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer directly addresses the question by providing specific steps and code examples for adding memory to a LangGraph agent, covering both short-term and long-term memory options.",
+      "index": 25,
+      "question": "How do you add memory to a LangGraph agent?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer directly addresses the question by identifying idempotency as the required node-level guarantee for safe resumption in LangGraph and explaining why it is necessary.",
+      "index": 26,
+      "question": "What node-level guarantee does LangGraph require for safe resumption after a failure?"
+    },
+    {
+      "score": 0,
+      "reasoning": "The answer incorrectly conflates 'LangGraph stores' with 'checkpointer implementations' (like InMemorySaver, SqliteSaver). In LangGraph, 'Stores' (e.g., BaseStore, InMemoryStore) are distinct from 'Checkpoints' (Checkpointer); Stores are used for long-term memory and cross-thread data persistence, whereas Checkpoints are used for short-term state management within a specific thread. By defining stores as checkpointers, the answer addresses a different component of the framework than what was asked.",
+      "index": 27,
+      "question": "What are LangGraph stores used for?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer directly addresses the question by providing a detailed comparison of LangChain and LangGraph, highlighting their differences in focus, workflow control, API style, and use cases.",
+      "index": 28,
+      "question": "How does LangChain differ from LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer directly addresses the question by detailing specific mechanisms for error handling (timeouts, error handlers) and retries (retry policies, idempotency) within LangGraph.",
+      "index": 29,
+      "question": "How do you handle errors and retries in LangGraph?"
+    },
+    {
+      "score": 1,
+      "reasoning": "The answer directly addresses both parts of the question: it defines what pending writes are in the context of LangGraph and explains why they matter (fault tolerance, efficiency, consistency).",
+      "index": 30,
+      "question": "What are pending writes in LangGraph and why do they matter?"
+    }
+  ]
+}
