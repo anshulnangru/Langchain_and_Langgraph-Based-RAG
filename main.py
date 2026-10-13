@@ -1,40 +1,78 @@
-import logfire
-import os
-from contextlib import asynccontextmanager
-from dotenv import load_dotenv
-from fastapi.responses import StreamingResponse
-import json
-from fastapi import BackgroundTasks
 import asyncio
+import hmac
+import json
+import os
+import uuid
+from contextlib import asynccontextmanager
+from typing import Optional
+
+import logfire
+from dotenv import load_dotenv
+
 load_dotenv()
 logfire.configure(token=os.getenv("LOGFIRE_TOKEN"))
 
 # Now safe to import app modules - logfire is already active
-from fastapi import FastAPI, Response
+from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from src.agents.graph import rag_agent
-from src.guardrails import initialize_rails, guard
-
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from typing import Optional
+from slowapi import Limiter
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
+from starlette.responses import JSONResponse
+
+from src.agents.graph import rag_agent
+from src.guardrails import guard, initialize_rails
+
+APP_API_KEY = os.getenv("APP_API_KEY")
+RATE_LIMIT = os.getenv("RATE_LIMIT", "10/minute")
+EXTRA_ORIGINS = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
+
+
+def client_key(request: Request) -> str:
+    # Behind a host proxy the real client IP is in X-Forwarded-For
+    fwd = request.headers.get("x-forwarded-for")
+    return fwd.split(",")[0].strip() if fwd else get_remote_address(request)
+
+
+limiter = Limiter(key_func=client_key)
+
+
+def require_key(x_api_key: str = Header(default="")):
+    if not hmac.compare_digest(x_api_key, APP_API_KEY or ""):
+        raise HTTPException(status_code=401, detail="Invalid or missing API key.")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Runs once, before the app starts accepting requests
+    # Fail loudly at startup instead of serving wrong answers later.
+    if not APP_API_KEY:
+        raise RuntimeError("APP_API_KEY is not set. Refusing to start an open endpoint.")
+
+    from src.retrieval.embeddings import embed_query
+
+    dim = len(embed_query("preflight"))
+    if dim != 1024:
+        raise RuntimeError(f"Embedding dim {dim} != 1024. Check the Jina key and balance.")
+
     initialize_rails()
-    logfire.info(" App startup complete — guardrails initialised.")
+    logfire.info("App startup complete - guardrails initialised.")
     yield
-    # (optional) any shutdown/cleanup logic goes here
 
 
 app = FastAPI(title="Enterprise Agentic RAG API", lifespan=lifespan)
+app.state.limiter = limiter
+
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limited(request: Request, exc: RateLimitExceeded):
+    return JSONResponse({"detail": "Rate limit exceeded. Try again shortly."}, status_code=429)
+
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:5174",
-    ],
+    allow_origins=["http://localhost:5173", "http://localhost:5174", *EXTRA_ORIGINS],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -43,54 +81,61 @@ app.add_middleware(
 
 class QueryRequest(BaseModel):
     q: str
-    thread_id: Optional[str] = "default_user"
+    thread_id: Optional[str] = None
+
+
+def _thread(tid: Optional[str]) -> str:
+    # Never share one memory thread between anonymous callers
+    return tid if tid and tid != "default_user" else str(uuid.uuid4())
+
+
+def _initial_state(q: str) -> dict:
+    return {
+        "messages": [{"role": "user", "content": q}],
+        "current_query": q,
+        "documents": [],
+        "plan": ["Start"],
+        "status": "Initializing Graph...",
+    }
 
 
 @app.get("/")
 def home():
     return {"message": "Enterprise LangGraph RAG API is live."}
 
-@app.post("/stream")
-async def stream_query(request: QueryRequest):
-    q = request.q
-    thread_id = request.thread_id
+
+@app.get("/health")
+def health():
+    # Cheap on purpose: hosts ping this often, and it must not spend tokens.
+    return {"status": "ok"}
+
+
+@app.post("/stream", dependencies=[Depends(require_key)])
+@limiter.limit(RATE_LIMIT)
+async def stream_query(request: Request, body: QueryRequest):
+    q = body.q
+    thread_id = _thread(body.thread_id)
 
     async def event_generator():
         try:
             loop = asyncio.get_event_loop()
-
-            initial_state = {
-                "messages": [{"role": "user", "content": q}],
-                "current_query": q,
-                "documents": [],
-                "plan": ["Start"],
-                "status": "Initializing Graph..."
-            }
             config = {"configurable": {"thread_id": thread_id}}
 
-            # Run guardrails and LangGraph CONCURRENTLY
-            # Both start at the same time — whoever finishes first doesn't block the other
+            # Run guardrails and LangGraph concurrently
             guard_task = loop.run_in_executor(None, guard, q)
             graph_task = loop.run_in_executor(
-                None,
-                lambda: rag_agent.invoke(initial_state, config=config)
+                None, lambda: rag_agent.invoke(_initial_state(q), config=config)
             )
 
-            # Wait for guardrails first — it's usually faster (no retrieval)
             rail_fired, rail_response = await guard_task
-
             if rail_fired:
-                # Cancel the graph task — we don't need the result
                 graph_task.cancel()
-                logfire.info(f"🛡️ Request blocked by guardrails | thread={thread_id}")
+                logfire.info(f"Request blocked by guardrails | thread={thread_id}")
                 yield f"data: {json.dumps({'token': rail_response})}\n\n"
                 yield "data: [DONE]\n\n"
                 return
 
-            # Guardrails passed — now wait for the graph result
-            # (it's been running in parallel this whole time)
             final_output = await graph_task
-
             answer = final_output.get("final_answer", "") or ""
             for word in answer.split(" "):
                 yield f"data: {json.dumps({'token': word + ' '})}\n\n"
@@ -101,70 +146,64 @@ async def stream_query(request: QueryRequest):
         except asyncio.CancelledError:
             pass
         except Exception as e:
-            logfire.error(f"❌ Stream Execution Failed: {e}")
-            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            logfire.error(f"Stream execution failed: {type(e).__name__}: {str(e)[:200]}")
+            # Generic message: do not leak internal error text to callers
+            yield f"data: {json.dumps({'error': 'Something went wrong. Please try again.'})}\n\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
-@app.get("/graph")
+
+@app.get("/graph", dependencies=[Depends(require_key)])
 def get_graph_image():
-    """
-    Returns the Mermaid image of the agent's workflow.
-    """
+    """Returns the Mermaid image of the agent's workflow."""
     try:
         png_bytes = rag_agent.get_graph().draw_mermaid_png()
         return Response(content=png_bytes, media_type="image/png")
     except Exception as e:
-        return {"error": f"Could not generate graph image: {e}"}
+        logfire.error(f"Graph image failed: {e}")
+        return {"error": "Could not generate graph image."}
 
 
-@app.post("/query")
-def query(request: QueryRequest):
-    """
-    Executes the LangGraph RAG flow with memory using a POST request.
-    """
-    q = request.q
-    thread_id = request.thread_id
-
-    initial_state = {
-        "messages": [{"role": "user", "content": q}],
-        "current_query": q,
-        "documents": [],
-        "plan": ["Start"],
-        "status": "Initializing Graph..."
-    }
-
+@app.post("/query", dependencies=[Depends(require_key)])
+@limiter.limit(RATE_LIMIT)
+def query(request: Request, body: QueryRequest):
+    """Executes the LangGraph RAG flow with memory using a POST request."""
+    q = body.q
+    thread_id = _thread(body.thread_id)
     config = {"configurable": {"thread_id": thread_id}}
 
     try:
-        # Gate 1: NeMo Guardrails — blocks off-topic, jailbreaks, and handles dialog
+        # Gate 1: NeMo Guardrails: blocks off-topic, jailbreaks, handles dialog
         rail_fired, rail_response = guard(q)
         if rail_fired:
-            logfire.info(f"🛡️ Request blocked by guardrails | thread={thread_id}")
+            logfire.info(f"Request blocked by guardrails | thread={thread_id}")
             return {
                 "question": q,
                 "answer": rail_response,
                 "thought_process": ["Intent: Guardrails Fired", "Retrieval: Skipped"],
                 "status": "Blocked by guardrails.",
-                "sources": []
+                "sources": [],
+                "thread_id": thread_id,
             }
 
         # Gate 2: LangGraph RAG pipeline
-        final_output = rag_agent.invoke(initial_state, config=config)
+        final_output = rag_agent.invoke(_initial_state(q), config=config)
 
         return {
             "question": q,
             "answer": final_output.get("final_answer"),
             "thought_process": final_output.get("plan"),
             "status": final_output.get("status"),
-            "sources": final_output.get("documents", [])
+            "sources": final_output.get("documents", []),
+            "thread_id": thread_id,
         }
     except Exception as e:
-        logfire.error(f"❌ Backend Execution Failed: {e}")
+        logfire.error(f"Backend execution failed: {type(e).__name__}: {str(e)[:200]}")
         return {
             "question": q,
             "answer": "I apologize, but I encountered an internal error while processing your request. Please try again later.",
             "thought_process": ["Error encountered during execution."],
             "status": "error",
-            "sources": []
+            "sources": [],
+            "thread_id": thread_id,
         }

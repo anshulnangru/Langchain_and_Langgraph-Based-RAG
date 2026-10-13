@@ -1,0 +1,10 @@
+cat > .dockerignore <<'EOF'
+.env
+.git
+data
+evals
+__pycache__
+*.ipynb
+.venv
+frontend
+EOFui
