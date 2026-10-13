@@ -24,9 +24,9 @@ class Settings:
 
     # --- Portkey gateway ---
     USE_PORTKEY = os.getenv("USE_PORTKEY", "false").lower() == "true"
-    PORTKEY_API_KEY = os.getenv("PORTKEY_API_KEY")
-    PORTKEY_CONFIG_GENERATOR = os.getenv("PORTKEY_CONFIG_GENERATOR", "pc-genera-3c27e4")
-    PORTKEY_CONFIG_PLANNER = os.getenv("PORTKEY_CONFIG_PLANNER", "pc-planne-0b87f5")
+    PORTKEY_API_KEY = (os.getenv("PORTKEY_API_KEY") or "").strip().strip("\"'") or None
+    PORTKEY_CONFIG_GENERATOR = os.getenv("PORTKEY_CONFIG_GENERATOR", "pc-genera-3c27e4").strip().strip("\"'")
+    PORTKEY_CONFIG_PLANNER = os.getenv("PORTKEY_CONFIG_PLANNER", "pc-planne-0b87f5").strip().strip("\"'")
     GROQ_SLUG = os.getenv("GROQ_SLUG")
     GROQ_SLUG_2 = os.getenv("GROQ_SLUG_2")
     GROQ_SLUG_3 = os.getenv("GROQ_SLUG_3")
