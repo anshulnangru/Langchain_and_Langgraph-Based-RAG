@@ -1,7 +1,11 @@
 import { useState, useRef, useEffect, useCallback, Component } from 'react'
 import ReactMarkdown from 'react-markdown'
 
-const API_BASE = 'http://localhost:8000'
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API_KEY = import.meta.env.VITE_API_KEY || ''
+
+// Each visitor gets their own conversation memory instead of sharing one thread.
+const newThreadId = () => `demo_${Math.random().toString(36).slice(2, 10)}`
 
 const SUGGESTIONS = [
   '🧠 What topics are in my knowledge base?',
@@ -141,17 +145,32 @@ function Message({ msg }) {
 export default function App() {
   const [messages, setMessages] = useState([])
   const [query, setQuery] = useState('')
-  const [threadId, setThreadId] = useState('default_user')
+  const [threadId, setThreadId] = useState(newThreadId)
   const [loading, setLoading] = useState(false)
   const [apiStatus, setApiStatus] = useState('checking')
   const messagesEndRef = useRef(null)
   const textareaRef = useRef(null)
 
-  // Check API health
+  // Check API health. A free-tier host sleeps when idle, so if the first
+  // check is slow, tell the visitor the server is waking up.
   useEffect(() => {
+    let cancelled = false
+    const wakeTimer = setTimeout(() => {
+      if (!cancelled) setApiStatus(s => (s === 'checking' ? 'waking' : s))
+    }, 4000)
+
     fetch(`${API_BASE}/`)
-      .then(r => r.ok ? setApiStatus('online') : setApiStatus('error'))
-      .catch(() => setApiStatus('error'))
+      .then(r => {
+        if (!cancelled) setApiStatus(r.ok ? 'online' : 'error')
+      })
+      .catch(() => {
+        if (!cancelled) setApiStatus('error')
+      })
+
+    return () => {
+      cancelled = true
+      clearTimeout(wakeTimer)
+    }
   }, [])
 
   // Auto-scroll to bottom
@@ -194,11 +213,18 @@ export default function App() {
     try {
       const res = await fetch(`${API_BASE}/stream`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': API_KEY,
+        },
         body: JSON.stringify({ q, thread_id: threadId }),
       })
 
+      if (res.status === 429) throw new Error('RATE_LIMIT')
+      if (res.status === 401 || res.status === 403) throw new Error('AUTH')
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
+
+      setApiStatus('online')
 
       const reader = res.body.getReader()
       const decoder = new TextDecoder()
@@ -254,10 +280,18 @@ export default function App() {
         return updated
       })
     } catch (err) {
+      let message
+      if (err.message === 'RATE_LIMIT') {
+        message = '⚠️ Too many requests. Wait a minute and try again.'
+      } else if (err.message === 'AUTH') {
+        message = '⚠️ The server rejected this request (invalid or missing API key).'
+      } else {
+        message = `⚠️ Could not reach the backend API. If it has been idle, it can take up to a minute to wake up. Try again shortly.\n\nError: ${err.message}`
+      }
       setMessages(prev => {
         const updated = [...prev]
         const last = { ...updated[updated.length - 1] }
-        last.text = `⚠️ Could not reach the backend API. Make sure the FastAPI server is running on port 8000.\n\nError: ${err.message}`
+        last.text = message
         last.error = true
         last.streaming = false
         updated[updated.length - 1] = last
@@ -279,6 +313,14 @@ export default function App() {
     online: '#34d399',
     error: '#f87171',
     checking: '#fbbf24',
+    waking: '#fbbf24',
+  }
+
+  const statusLabel = {
+    online: 'API Online',
+    error: 'API Offline',
+    checking: 'Connecting...',
+    waking: 'Waking up server...',
   }
 
   return (
@@ -294,9 +336,25 @@ export default function App() {
         </div>
         <div className="status-pill">
           <div className="status-dot" style={{ background: statusColor[apiStatus] }} />
-          {apiStatus === 'online' ? 'API Online' : apiStatus === 'error' ? 'API Offline' : 'Connecting...'}
+          {statusLabel[apiStatus]}
         </div>
       </header>
+
+      {/* Wake-up notice (free-tier hosts sleep when idle) */}
+      {apiStatus === 'waking' && (
+        <div
+          role="status"
+          style={{
+            padding: '10px 20px',
+            fontSize: '0.875rem',
+            background: 'rgba(251, 191, 36, 0.12)',
+            borderBottom: '1px solid rgba(251, 191, 36, 0.35)',
+          }}
+        >
+          The server was idle and is starting up. This can take up to a minute.
+          You can type your question now, and it will send once the server is ready.
+        </div>
+      )}
 
       {/* Messages */}
       <main className="messages-area" id="messages-area" role="log" aria-live="polite">

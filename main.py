@@ -27,7 +27,15 @@ from src.guardrails import guard, initialize_rails
 
 APP_API_KEY = os.getenv("APP_API_KEY")
 RATE_LIMIT = os.getenv("RATE_LIMIT", "10/minute")
-EXTRA_ORIGINS = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
+# Backstop across ALL callers combined. Caps total spend even if per-client
+# limiting is bypassed (e.g. a spoofed X-Forwarded-For header).
+GLOBAL_RATE_LIMIT = os.getenv("GLOBAL_RATE_LIMIT", "100/hour")
+
+# Origins are compared exactly, so strip whitespace and any trailing slash
+# (https://x.pages.dev/ would otherwise never match https://x.pages.dev).
+EXTRA_ORIGINS = [
+    o.strip().rstrip("/") for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()
+]
 
 
 def client_key(request: Request) -> str:
@@ -36,11 +44,19 @@ def client_key(request: Request) -> str:
     return fwd.split(",")[0].strip() if fwd else get_remote_address(request)
 
 
+def global_key(request: Request) -> str:
+    return "global"
+
+
 limiter = Limiter(key_func=client_key)
 
 
 def require_key(x_api_key: str = Header(default="")):
-    if not hmac.compare_digest(x_api_key, APP_API_KEY or ""):
+    # Compare as bytes: compare_digest raises TypeError on non-ASCII str,
+    # which would turn a odd header value into a 500 instead of a 401.
+    supplied = x_api_key.encode("utf-8")
+    expected = (APP_API_KEY or "").encode("utf-8")
+    if not hmac.compare_digest(supplied, expected):
         raise HTTPException(status_code=401, detail="Invalid or missing API key.")
 
 
@@ -112,6 +128,7 @@ def health():
 
 @app.post("/stream", dependencies=[Depends(require_key)])
 @limiter.limit(RATE_LIMIT)
+@limiter.limit(GLOBAL_RATE_LIMIT, key_func=global_key)
 async def stream_query(request: Request, body: QueryRequest):
     q = body.q
     thread_id = _thread(body.thread_id)
@@ -150,7 +167,12 @@ async def stream_query(request: Request, body: QueryRequest):
             # Generic message: do not leak internal error text to callers
             yield f"data: {json.dumps({'error': 'Something went wrong. Please try again.'})}\n\n"
 
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        # Ask proxies (Render, Cloudflare) not to buffer or cache the stream
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 @app.get("/graph", dependencies=[Depends(require_key)])
@@ -166,6 +188,7 @@ def get_graph_image():
 
 @app.post("/query", dependencies=[Depends(require_key)])
 @limiter.limit(RATE_LIMIT)
+@limiter.limit(GLOBAL_RATE_LIMIT, key_func=global_key)
 def query(request: Request, body: QueryRequest):
     """Executes the LangGraph RAG flow with memory using a POST request."""
     q = body.q
