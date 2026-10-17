@@ -1,10 +1,14 @@
 cat > .dockerignore <<'EOF'
 .env
 .git
+.venv
+.claude
+.deepeval
+.logfire
 data
 evals
+ui
 __pycache__
 *.ipynb
-.venv
-frontend
-EOFui
+EOF
+cat .dockerignore
