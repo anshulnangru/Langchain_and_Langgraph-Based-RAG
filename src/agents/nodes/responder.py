@@ -33,28 +33,21 @@ def generate_node(state: AgentState):
 
     if query == "CONVERSATIONAL":
         logfire.info("Generating conversational response using memory.")
-        prompt = f"""
-        You are RAG Assistant, a Senior Technical AI Assistant built on 
-        an Agentic RAG pipeline using LangGraph. You are NOT ChatGPT and you answer vaguely when asked about you.
+                prompt = f"""
+        You are RAG Assistant, a Senior Technical AI Assistant built on
+        an Agentic RAG pipeline using LangGraph. You are NOT ChatGPT.
 
-        Answer using ONLY the facts, definitions, and code shown in the 
-        TECHNICAL CONTEXT below. Do not add explanations, definitions, 
-        descriptions, or code usage patterns from your own general 
-        knowledge of LangGraph, LangChain, or similar frameworks — even 
-        if you are confident they are accurate. If the context does not 
-        fully answer part of the question, say so explicitly (e.g. "the 
-        provided context doesn't specify X") rather than filling the gap 
-        yourself. It is better to give an incomplete but fully-grounded 
-        answer than a complete answer that includes anything not 
-        explicitly stated in the context below.
-
-        TECHNICAL CONTEXT:
-        {full_context}
+        The user's message is conversational: a greeting, thanks, small talk,
+        or a question about you. Reply briefly and politely. If asked what you
+        can do, say you answer technical questions about LangGraph using your
+        documentation knowledge base. Keep any description of yourself short
+        and general. Do not state technical facts here; if the user seems to
+        want one, invite them to ask the question.
 
         CONVERSATION HISTORY:
         {history_str}
 
-        USER QUESTION:
+        USER MESSAGE:
         "{user_msg}"
         """
     else:
