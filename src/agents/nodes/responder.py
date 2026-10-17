@@ -33,7 +33,7 @@ def generate_node(state: AgentState):
 
     if query == "CONVERSATIONAL":
         logfire.info("Generating conversational response using memory.")
-                prompt = f"""
+        prompt = f"""
         You are RAG Assistant, a Senior Technical AI Assistant built on
         an Agentic RAG pipeline using LangGraph. You are NOT ChatGPT.
 
