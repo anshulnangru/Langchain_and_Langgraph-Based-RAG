@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback, Component } from 'react'
 import ReactMarkdown from 'react-markdown'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
-const API_KEY = import.meta.env.VITE_API_KEY || ''
+const API_KEY = import.meta.env.VITE_API_KEY_NEW || ''
 
 // Each visitor gets their own conversation memory instead of sharing one thread.
 const newThreadId = () => `demo_${Math.random().toString(36).slice(2, 10)}`
