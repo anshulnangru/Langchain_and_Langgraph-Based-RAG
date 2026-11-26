@@ -24,7 +24,7 @@ def _invoke_with_retry(prompt: str, retries: int = 3, delay: float = 1.5):
 
 def planner_node(state: AgentState):
     history = ""
-    for msg in state["messages"][:-1]:
+    for msg in state["messages"][-7:-1]:  # last 3 turns keep prompts small and fast
         role = "User" if msg["role"] == "user" else "Assistant"
         history += f"{role}: {msg['content']}\n"
 
@@ -41,8 +41,8 @@ def planner_node(state: AgentState):
     "{user_message}"
     
     Task:
-    1. If the latest message is a greeting (hi, hello) or a question that can be answered using ONLY the conversation history above (e.g., "what is my name"), respond with 'CONVERSATIONAL'.
-    2. If it is a technical question that requires fresh documentation, output a refined search query.
+    1. If the latest message is a greeting, thanks, small talk, or a question about the user or the chat itself (e.g., "what is my name"), respond with 'CONVERSATIONAL'.
+    2. Otherwise output a standalone search query. For technical follow-ups ("show an example of that", "explain more"), resolve what "that" refers to from the history, e.g. "LangGraph checkpointer memory code example".
     
     Output ONLY 'CONVERSATIONAL' or the search query. Nothing else.
     """

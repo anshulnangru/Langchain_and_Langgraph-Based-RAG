@@ -8,11 +8,31 @@ const API_KEY = import.meta.env.VITE_API_KEY_NEW || ''
 const newThreadId = () => `demo_${Math.random().toString(36).slice(2, 10)}`
 
 const SUGGESTIONS = [
-  '🧠 What topics are in my knowledge base?',
-  '📄 Summarize the key concepts',
-  '🔍 Find information about ...',
-  '💡 Explain the main ideas',
+  'What is LangGraph and when should I use it?',
+  'How do conditional edges work in LangGraph?',
+  'How do I add memory with a checkpointer?',
+  'LangChain vs LangGraph: what is the difference?',
 ]
+
+// Chat history lives in this browser only. The server keeps memory in RAM,
+// so an old chat still shows here after a backend restart but loses its context.
+const STORAGE_KEY = 'rag_chats_v1'
+
+function loadChats() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []
+  } catch {
+    return []
+  }
+}
+
+function saveChats(chats) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(chats))
+  } catch {
+    // storage full or blocked: history just won't persist
+  }
+}
 
 function formatTime(ts) {
   return new Date(ts).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
@@ -148,8 +168,49 @@ export default function App() {
   const [threadId, setThreadId] = useState(newThreadId)
   const [loading, setLoading] = useState(false)
   const [apiStatus, setApiStatus] = useState('checking')
+  const [chats, setChats] = useState(loadChats)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const messagesEndRef = useRef(null)
   const textareaRef = useRef(null)
+
+  // Save the open conversation into history whenever it changes.
+  useEffect(() => {
+    if (messages.length === 0) return
+    setChats(prev => {
+      const title = messages.find(m => m.role === 'user')?.text.slice(0, 60) || 'New chat'
+      const chat = { id: threadId, title, messages, updatedAt: Date.now() }
+      const next = [chat, ...prev.filter(c => c.id !== threadId)]
+      saveChats(next)
+      return next
+    })
+  }, [messages, threadId])
+
+  const openChat = (chat) => {
+    if (loading) return
+    setThreadId(chat.id)
+    setMessages(chat.messages)
+    setSidebarOpen(false)
+  }
+
+  const newChat = () => {
+    if (loading) return
+    setThreadId(newThreadId())
+    setMessages([])
+    setSidebarOpen(false)
+  }
+
+  const deleteChat = (id) => {
+    if (loading) return
+    setChats(prev => {
+      const next = prev.filter(c => c.id !== id)
+      saveChats(next)
+      return next
+    })
+    if (id === threadId) {
+      setThreadId(newThreadId())
+      setMessages([])
+    }
+  }
 
   // Check API health. A free-tier host sleeps when idle, so if the first
   // check is slow, tell the visitor the server is waking up.
@@ -324,10 +385,51 @@ export default function App() {
   }
 
   return (
+    <div className="shell">
+      {/* Chat history sidebar */}
+      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`} aria-label="Chat history">
+        <button className="new-chat-btn" onClick={newChat} disabled={loading}>
+          + New chat
+        </button>
+        <div className="history-label">History</div>
+        <nav className="history-list">
+          {chats.length === 0 && <div className="history-empty">No conversations yet</div>}
+          {chats.map(chat => (
+            <div key={chat.id} className={`history-item ${chat.id === threadId ? 'active' : ''}`}>
+              <button
+                className="history-open"
+                onClick={() => openChat(chat)}
+                disabled={loading}
+                title={chat.title}
+              >
+                {chat.title}
+              </button>
+              <button
+                className="history-delete"
+                onClick={() => deleteChat(chat.id)}
+                disabled={loading}
+                aria-label={`Delete chat: ${chat.title}`}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </nav>
+      </aside>
+      {sidebarOpen && <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} />}
+
     <div className="app">
       {/* Header */}
       <header className="header">
         <div className="header-brand">
+          <button
+            className="menu-btn"
+            onClick={() => setSidebarOpen(o => !o)}
+            aria-label="Show chat history"
+            aria-expanded={sidebarOpen}
+          >
+            ☰
+          </button>
           <div className="header-logo">🧠</div>
           <div>
             <div className="header-title">RAG Assistant</div>
@@ -361,10 +463,10 @@ export default function App() {
         {messages.length === 0 && !loading ? (
           <div className="empty-state">
             <div className="empty-icon">🧠</div>
-            <h1 className="empty-title">Ask your Second Brain</h1>
+            <h1 className="empty-title">Ask about LangChain & LangGraph</h1>
             <p className="empty-desc">
-              Powered by an agentic RAG pipeline — ask anything about your knowledge base
-              and get grounded, reasoned answers.
+              Answers grounded in the official LangChain and LangGraph documentation,
+              retrieved and reranked by an agentic RAG pipeline.
             </p>
             <div className="suggestions">
               {SUGGESTIONS.map((s, i) => (
@@ -397,7 +499,7 @@ export default function App() {
             ref={textareaRef}
             id="query-input"
             className="query-input"
-            placeholder="Ask anything about your knowledge base…"
+            placeholder="Ask about LangChain or LangGraph…"
             value={query}
             onChange={e => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -405,15 +507,6 @@ export default function App() {
             disabled={loading}
           />
           <div className="input-actions">
-            <input
-              id="thread-id-input"
-              className="thread-input"
-              type="text"
-              placeholder="Thread ID"
-              value={threadId}
-              onChange={e => setThreadId(e.target.value)}
-              title="Conversation thread ID (for memory)"
-            />
             <button
               id="send-btn"
               className="send-btn"
@@ -429,13 +522,11 @@ export default function App() {
         </div>
         <div className="input-hint">
           <span>
-            Thread: <kbd>{threadId}</kbd> controls conversation memory
-          </span>
-          <span>
             <kbd>↵</kbd> send · <kbd>⇧↵</kbd> newline
           </span>
         </div>
       </footer>
+    </div>
     </div>
   )
 }

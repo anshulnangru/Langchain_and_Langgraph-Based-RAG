@@ -2,6 +2,7 @@ import asyncio
 import hmac
 import json
 import os
+import re
 import uuid
 from contextlib import asynccontextmanager
 from typing import Optional
@@ -72,6 +73,9 @@ async def lifespan(app: FastAPI):
     if dim != 1024:
         raise RuntimeError(f"Embedding dim {dim} != 1024. Check the Jina key and balance.")
 
+    from src.retrieval.ranking_service import _get_ranker
+
+    _get_ranker()  # load the reranker now, not during the first visitor's query
     initialize_rails()
     logfire.info("App startup complete - guardrails initialised.")
     yield
@@ -105,6 +109,19 @@ def _thread(tid: Optional[str]) -> str:
     return tid if tid and tid != "default_user" else str(uuid.uuid4())
 
 
+def _visible(text: str) -> str:
+    """Answer text without <think> blocks, holding back an unclosed one or a partial '<think' tag."""
+    text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL)
+    text = re.sub(r"<think>.*$", "", text, flags=re.DOTALL)
+    for i in range(1, len("<think>")):
+        if text.endswith("<think>"[:i]):
+            return text[:-i]
+    return text
+
+
+assert _visible("a<think>x</think>b") == "ab" and _visible("hi <thi") == "hi " and _visible("a<think>x") == "a"
+
+
 def _initial_state(q: str) -> dict:
     return {
         "messages": [{"role": "user", "content": q}],
@@ -135,28 +152,40 @@ async def stream_query(request: Request, body: QueryRequest):
 
     async def event_generator():
         try:
-            loop = asyncio.get_event_loop()
             config = {"configurable": {"thread_id": thread_id}}
 
-            # Run guardrails and LangGraph concurrently
-            guard_task = loop.run_in_executor(None, guard, q)
-            graph_task = loop.run_in_executor(
-                None, lambda: rag_agent.invoke(_initial_state(q), config=config)
-            )
-
-            rail_fired, rail_response = await guard_task
+            # Guard first: it is regex-only for most messages, and running the graph
+            # in parallel wasted tokens and saved blocked messages into memory.
+            rail_fired, rail_response = await asyncio.to_thread(guard, q)
             if rail_fired:
-                graph_task.cancel()
                 logfire.info(f"Request blocked by guardrails | thread={thread_id}")
                 yield f"data: {json.dumps({'token': rail_response})}\n\n"
                 yield "data: [DONE]\n\n"
                 return
 
-            final_output = await graph_task
-            answer = final_output.get("final_answer", "") or ""
-            for word in answer.split(" "):
-                yield f"data: {json.dumps({'token': word + ' '})}\n\n"
-                await asyncio.sleep(0.02)
+            # Stream the responder's tokens as the LLM produces them.
+            streamed = ""
+            sent = 0
+            final_state = {}
+            async for mode, data in rag_agent.astream(
+                _initial_state(q), config=config, stream_mode=["messages", "values"]
+            ):
+                if mode == "values":
+                    final_state = data
+                    continue
+                chunk, meta = data
+                if meta.get("langgraph_node") != "responder" or not chunk.content:
+                    continue
+                streamed += chunk.content
+                visible = _visible(streamed)
+                if len(visible) > sent:
+                    yield f"data: {json.dumps({'token': visible[sent:]})}\n\n"
+                    sent = len(visible)
+
+            # Fallback if the model did not stream (e.g. cache hit): send the whole answer.
+            if not streamed:
+                answer = final_state.get("final_answer", "") or ""
+                yield f"data: {json.dumps({'token': answer})}\n\n"
 
             yield "data: [DONE]\n\n"
 

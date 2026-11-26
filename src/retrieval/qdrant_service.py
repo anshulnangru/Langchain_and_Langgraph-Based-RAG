@@ -9,7 +9,8 @@ from src.retrieval.ranking_service import rerank_documents
 
 client = QdrantClient(
     url=settings.QDRANT_URL,
-    api_key=settings.QDRANT_API_KEY
+    api_key=settings.QDRANT_API_KEY,
+    timeout=10,  # a dead cluster should fail in seconds, not stall the answer
 )
 
 # ── Toggle: set QDRANT_CLEAN_ONLY=true in .env to filter noise during eval ────
@@ -41,7 +42,7 @@ _CLEAN_ONLY = os.getenv("QDRANT_CLEAN_ONLY", "false").lower() == "true"
 MAX_CHUNKS_PER_SOURCE_IN_RESULT = int(os.getenv("MAX_CHUNKS_PER_SOURCE_IN_RESULT", "2"))
 
 
-def _query_with_retry(query_vector, query_filter, fetch_k, attempts: int = 5, delay: float = 2.0):
+def _query_with_retry(query_vector, query_filter, fetch_k, attempts: int = 2, delay: float = 1.0):
     """
     FIX: root cause of intermittent empty-context bugs — Qdrant queries were
     failing with transient DNS errors ('No address associated with
