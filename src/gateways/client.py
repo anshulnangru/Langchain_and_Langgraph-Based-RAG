@@ -47,7 +47,7 @@ def _resolve(feature: str, model):
     m = model or (
         settings.GROQ_MODEL_PLANNER if feature == "planner" else settings.GROQ_MODEL
     )
-    max_tok = 150 if feature == "planner" else 950
+    max_tok = 150 if feature == "planner" else 2048  # 950 cut long code answers mid-sentence
     return m, max_tok
 
 

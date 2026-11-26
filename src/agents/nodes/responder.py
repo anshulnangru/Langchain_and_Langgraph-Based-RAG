@@ -25,7 +25,7 @@ def generate_node(state: AgentState):
     query = state["current_query"]
 
     history_str = ""
-    for msg in state["messages"][:-1]:
+    for msg in state["messages"][-7:-1]:  # last 3 turns keep prompts small and fast
         role = "User" if msg["role"] == "user" else "Assistant"
         history_str += f"{role}: {msg['content']}\n"
 
@@ -50,6 +50,19 @@ def generate_node(state: AgentState):
         USER MESSAGE:
         "{user_msg}"
         """
+    elif not state["documents"]:
+        # Retrieval failed or found nothing: say so instead of answering from no context.
+        logfire.warning("No documents retrieved; skipping LLM synthesis.")
+        content = (
+            "I couldn't reach my documentation knowledge base for this question, so I "
+            "can't give a grounded answer right now. Please try again in a moment."
+        )
+        return {
+            "final_answer": content,
+            "status": "No context retrieved.",
+            "plan": state["plan"] + ["Retrieval: no context"],
+            "messages": [{"role": "assistant", "content": content}],
+        }
     else:
         logfire.info("Generating technical RAG response.")
         max_context_chars = 25000
